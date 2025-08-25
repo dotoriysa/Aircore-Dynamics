@@ -3,6 +3,16 @@
 -- Database: smart_factory
 -- ========================================
 
+-- 테이블이 이미 존재하는 경우, 외래 키(Foreign Key) 제약 조건에 따라
+-- 의존성이 있는 자식 테이블부터 먼저 삭제합니다.
+DROP TABLE IF EXISTS machine_status_data;
+DROP TABLE IF EXISTS vibration_data;
+DROP TABLE IF EXISTS power_data;
+DROP TABLE IF EXISTS production_data;
+DROP TABLE IF EXISTS environment_data;
+DROP TABLE IF EXISTS operation_schedule;
+DROP TABLE IF EXISTS process_machine_info;
+
 -- ========================================
 -- 1. 공정별 머신 고정 테이블 (마스터 데이터)
 -- ========================================
