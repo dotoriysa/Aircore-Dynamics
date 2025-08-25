@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>에어코어 다이나믹스 - 제조 대시보드</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
     * {
         margin: 0;
@@ -386,7 +387,8 @@
                             <button class="cnc-btn" onclick="toggleCncAnimation()">
                                 <span id="animationBtn">⏸️ 일시정지</span>
                             </button>
-                            <button class="cnc-btn" onclick="resetCncView()">🔄 리셋</button>
+                            <button class="cnc-btn" onclick="zoomIn()">➕</button>
+                            <button class="cnc-btn" onclick="zoomOut()">➖</button>
                         </div>
                         <div class="cnc-status">
                             <div><strong>상태:</strong> <span id="cncStatusText">정상 가동 중</span></div>
@@ -611,7 +613,7 @@
 
     <script>
         // 전역 변수들
-        let scene, camera, renderer, spindle, workpiece;
+        let scene, camera, renderer, spindle, workpiece, controls;
         let animationId;
         let cncAnimationRunning = true;
         let selectedLine = 'casting';
@@ -899,11 +901,15 @@
             }
         }
 
-        // CNC 뷰 리셋
-        function resetCncView() {
+        function zoomIn() {
             if (camera) {
-                camera.position.set(5, 5, 5);
-                camera.lookAt(0, 0, 0);
+                camera.position.multiplyScalar(0.8);
+            }
+        }
+
+        function zoomOut() {
+            if (camera) {
+                camera.position.multiplyScalar(1.2);
             }
         }
 
@@ -937,6 +943,16 @@
                     container.removeChild(existingCanvas);
                 }
                 container.appendChild(renderer.domElement);
+
+                // Controls 설정
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.screenSpacePanning = false;
+                controls.minDistance = 2;
+                controls.maxDistance = 20;
+                controls.maxPolarAngle = Math.PI / 2;
+
 
                 // 조명 설정
                 const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
@@ -1052,12 +1068,8 @@
                     workpiece.position.z = Math.cos(Date.now() * 0.0015) * 0.08;
                 }
 
-                // 카메라 자동 회전
-                if (camera) {
-                    const time = Date.now() * 0.0005;
-                    camera.position.x = Math.cos(time) * 8;
-                    camera.position.z = Math.sin(time) * 8;
-                    camera.lookAt(0, 1, 0);
+                if (controls) {
+                    controls.update();
                 }
 
                 if (renderer && scene && camera) {
