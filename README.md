@@ -1,10 +1,15 @@
 
-# 에어코어 다이나믹스 - 통합 제조 대시보드 (Air Core Dynamics - Integrated Manufacturing Dashboard)
+# Air Core Dynamics - 통합 제조 대시보드 (Integrated Manufacturing Dashboard)
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-실시간 제조 데이터를 시각화하고 관리하기 위한 웹 기반 대시보드입니다. Three.js를 활용한 동적인 3D 공장 뷰어를 통해 전체 공정 현황을 직관적으로 모니터링할 수 있는 환경을 제공합니다.
+## 📌 프로젝트 개요
+**Air Core Dynamics**는 실시간 제조 데이터를 직관적으로 모니터링하기 위해 제작된 **웹 기반 스마트 팩토리 대시보드**입니다.  
+Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**를 통해,  
+데이터 시각화 + 예측 분석 + 공정 모니터링을 하나의 통합 플랫폼에서 제공합니다.
+
+---
 
 ## ✨ 주요 기능 (Features)
 
@@ -18,6 +23,8 @@
 - **📈 라인별 상세 분석**: 주조, 가공, 검사, 조립 등 각 공정 라인별 상세 데이터를 심층적으로 분석할 수 있습니다.
 - **🔍 예측 분석**: 생산량 예측 및 주요 병목 구간 분석을 통해 선제적인 의사결정을 지원합니다.
 - **📦 재고 및 출하 관리**: 완제품, 반제품 재고 현황과 당일/예정 출하량을 관리합니다.
+
+---
 
 ## 📐 시스템 화면 흐름도 (Screen Flow Diagram)
 
@@ -36,12 +43,53 @@
 
 - **3단계 (장비 상세 화면)**  
   - 장비 번호, 상태(가동/정지/점검), 전력량(kW), 생산량(개/시간), 가동률(%) 표시  
-  - 사용자 액션: 특정 장비를 클릭하면 해당 장비의 상세 정보로 변경  
+  - 사용자 액션: 특정 장비를 클릭하면 해당 장비의 상세 정보로 변경
+
+---
+
+## 🖌️ UI/UX (Design - Figma)
+
+본 프로젝트의 UI/UX는 **Figma**를 활용하여 설계되었습니다.  
+디자인 단계에서는 다음과 같은 요소를 고려했습니다:
+
+- **사용자 여정(User Flow)** 중심 와이어프레임 설계
+- **정보 계층 구조**를 반영한 지표 시각화
+- **다크 모드 기반**의 현대적인 공장 모니터링 UI
+
+**대표 시안 예시**
+
+| 메인 대시보드 | 공정 전체 화면 |
+|---------------|-----------------|
+| ![Dashboard Design](./docs/figma_dashboard.png) | ![Line Detail Design](./docs/figma_view.png) |
+
+---
 
 ## 🛠️ 기술 스택 (Tech Stack)
 
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **3D Graphics**: Three.js
+| 분야 | 기술 |
+|------|------|
+| **Frontend** | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black) |
+| **3D Graphics** | ![Three.js](https://img.shields.io/badge/Three.js-000000?style=flat&logo=three.js&logoColor=white) |
+| **Backend** | ![Java](https://img.shields.io/badge/Java%2017-007396?style=flat&logo=java&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot%203.4.9-6DB33F?style=flat&logo=springboot&logoColor=white) ![MyBatis](https://img.shields.io/badge/MyBatis-000000?style=flat&logo=databricks&logoColor=white) |
+| **Database** | ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat&logo=mysql&logoColor=white) |
+| **Build Tool** | ![Maven](https://img.shields.io/badge/Maven-C71A36?style=flat&logo=apachemaven&logoColor=white) |
+| **Deployment** | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white) |
+| **Design** | ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=flat&logo=figma&logoColor=white) |
+
+- **Backend**: Spring Boot 3.4.9 기반 REST API 서버
+- **ORM/Mapper**: MyBatis를 사용하여 공정/장비/생산 데이터 매핑
+- **Database**: 개발·테스트 단계 및 운영 환경에서 MySQL 연동
+- **Build & Deploy**: Maven 기반 빌드, Vercel을 통한 프론트엔드 배포
+
+---
+
+## 🎥 데모 (Demo)
+
+![대시보드 데모](./docs/demo.gif)
+
+> 실제 동작 화면 (실시간 데이터 시뮬레이션 + 3D 공장 뷰어)
+
+---
 
 ## 🚀 시작하기 (Getting Started)
 
@@ -64,10 +112,14 @@ git clone [https://github.com/dotoriysa/Aircore-Dynamics.git](https://github.com
 
 ```
 .
-├── Factory_Dashboard.html  # 메인 대시보드 페이지
-├── view.html               # 전체화면 3D 뷰어 페이지
-├── CONTRIBUTING.md         # 기여 가이드 문서
-└── README.md               # 프로젝트 소개 문서
+├── Factory_Dashboard.html        # 메인 대시보드 페이지 (프론트엔드)
+├── view.html                     # 전체화면 3D 뷰어 페이지
+├── src/main/java/com/example/... # Spring Boot 백엔드 (Controller, Service, Mapper, Model)
+├── src/main/resources/schema.sql # DB 스키마
+├── src/main/resources/data.sql   # 초기 데이터
+├── pom.xml                       # Maven 설정
+└── README.md                     # 프로젝트 소개 문서
+
 ```
 
 ## 🤝 기여하기 (Contributing)
