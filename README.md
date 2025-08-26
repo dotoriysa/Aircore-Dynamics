@@ -21,6 +21,8 @@
 
 ## 📐 시스템 화면 흐름도 (Screen Flow Diagram)
 
+![Aircore Dynamics Screen Flow](./docs/Aircore%20Dynamics%20Screen%20Flow.png)
+
 본 다이어그램은 **Aircore Dynamics 통합 제조 대시보드**의 화면 이동 구조와 각 단계별 주요 표시 정보를 정리한 것입니다.  
 개발자는 이를 참고하여 페이지 간 전환 로직과 데이터 연동 방식을 구현할 수 있습니다.
 
@@ -35,9 +37,6 @@
 - **3단계 (장비 상세 화면)**  
   - 장비 번호, 상태(가동/정지/점검), 전력량(kW), 생산량(개/시간), 가동률(%) 표시  
   - 사용자 액션: 특정 장비를 클릭하면 해당 장비의 상세 정보로 변경  
-
-![Aircore Dynamics Screen Flow](./docs/Aircore Dynamics Screen Flow.png)
-
 
 ## 🛠️ 기술 스택 (Tech Stack)
 
