@@ -5,17 +5,22 @@
 <mapper namespace="com.example.demo.mapper.MachineStatusMapper">
 
     <select id="selectOperatingMachinesCount" resultType="int">
+        <![CDATA[
         SELECT COUNT(DISTINCT T1.pm_id)
         FROM machine_status_data AS T1
         INNER JOIN (
         SELECT pm_id, MAX(timestamp) AS max_timestamp
         FROM machine_status_data
+        WHERE pm_id = #{pmId}
         GROUP BY pm_id
         ) AS T2 ON T1.pm_id = T2.pm_id AND T1.timestamp = T2.max_timestamp
-        WHERE T1.status = 1;
+        WHERE T1.status = 1
+        AND T1.pm_id = #{pmId}
+        ]]>
     </select>
 
     <select id="selectGrandTotalOperatingSeconds" resultType="double">
+        <![CDATA[
         SELECT
         SUM(total_operating_seconds) AS grand_total_operating_seconds
         FROM (
@@ -27,16 +32,17 @@
         pm_id,
         status,
         TIMESTAMPDIFF(SECOND, timestamp,
-        LEAD(timestamp, 1, timestamp) OVER (PARTITION BY pm_id ORDER BY timestamp)) AS status_duration
+        LEAD(timestamp, 1, NOW()) OVER (PARTITION BY pm_id ORDER BY timestamp)) AS status_duration
         FROM
         Machine_Status_Data
+        WHERE
+        pm_id = #{pmId} AND DATE(timestamp) = CURDATE() AND timestamp <= NOW()
         ) AS subquery
         WHERE
         status = 1
         GROUP BY
         pm_id
         ) AS per_machine_totals
+        ]]>
     </select>
-
-
 </mapper>
