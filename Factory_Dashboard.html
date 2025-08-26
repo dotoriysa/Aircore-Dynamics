@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirCore Dynamics - 제조 대시보드</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        color: #e0e0e0;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: rgba(28, 49, 58, 0.85);
+        backdrop-filter: blur(10px);
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 20px rgba(77, 208, 225, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-bottom: 1px solid rgba(77, 208, 225, 0.2);
+    }
+
+    .logo {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #ffffff;
+    }
+
+    .time-display {
+        font-size: 1.1rem;
+        color: #e0e0e0;
+    }
+
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .tab-navigation {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        background: transparent;
+        color: #e0e0e0;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .tab-btn.active {
+        background: rgba(77, 208, 225, 0.3);
+        color: #ffffff;
+        backdrop-filter: blur(10px);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .card {
+        background: rgba(28, 49, 58, 0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border: 1px solid rgba(77, 208, 225, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #f5f5f5;
+    }
+
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    .status-good { background-color: #27ae60; }
+    .status-warning { background-color: #f39c12; }
+    .status-danger { background-color: #e74c3c; }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
+    }
+
+    .metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+    }
+
+    .metric-value {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #4dd0e1;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #0097a7, #4dd0e1);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    /* --- ✨ 3D 공장 뷰어 CSS ✨ --- */
+    .factory-container {
+        grid-column: span 2;
+        height: 400px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #factoryViewer {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        background: #0f2027;
+    }
+
+    .factory-controls {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .factory-btn {
+        padding: 0.5rem 1rem;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .machine-info-panel {
+        position: absolute;
+        bottom: 1rem;
+        left: 1rem;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        max-width: 300px;
+        transition: opacity 0.3s ease;
+    }
+    .machine-info-panel.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    /* --- ✨ 3D 뷰어 CSS 완료 ✨ --- */
+
+    .equipment-status {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .equipment-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+
+    .equipment-item:hover {
+        transform: scale(1.05);
+    }
+
+    .equipment-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .alert-box {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        animation: alertPulse 2s infinite;
+    }
+
+    @keyframes alertPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+
+    .wide-card {
+        grid-column: span 2;
+    }
+
+    .production-chart {
+        height: 200px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        margin: 1rem 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-around;
+        padding: 1rem;
+    }
+
+    .chart-bar {
+        background: linear-gradient(0deg, #0097a7, #4dd0e1);
+        border-radius: 4px 4px 0 0;
+        width: 40px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: bold;
+        padding-bottom: 0.25rem;
+        transition: height 1s ease;
+    }
+
+    .line-selector {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .line-btn {
+        padding: 0.5rem 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border: 2px solid transparent;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #e0e0e0;
+    }
+
+    .line-btn.active {
+        background: #00bcd4;
+        color: white;
+        border-color: #0097a7;
+    }
+
+    @media (max-width: 1200px) {
+        .factory-container {
+            grid-column: span 1;
+        }
+        .wide-card {
+            grid-column: span 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        .tab-navigation {
+            justify-content: center;
+        }
+    }
+</style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <div class="logo">🏭 AirCore Dynamics</div>
+            <div class="time-display" id="currentTime"></div>
+        </div>
+
+        <div class="container">
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="setActiveTab('dashboard')">대시보드</button>
+                <button class="tab-btn" onclick="setActiveTab('lines')">라인별 상세</button>
+                <button class="tab-btn" onclick="setActiveTab('prediction')">예측 분석</button>
+                <button class="tab-btn" onclick="setActiveTab('inventory')">재고/출하</button>
+            </div>
+
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <div class="card factory-container">
+                        <div class="card-header">
+                            <div class="card-title">🏭 3D 공장 뷰어</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div id="factoryViewer"></div>
+                        <div class="factory-controls">
+                            <button class="factory-btn" onclick="toggleAnimation()">
+                                <span id="animationBtn">⏸️ 일시정지</span>
+                            </button>
+                            <button class="factory-btn" onclick="zoomIn()">➕</button>
+                            <button class="factory-btn" onclick="zoomOut()">➖</button>
+                            <button class="factory-btn" onclick="openFullscreenView()">🖼️ 전체화면</button>
+                        </div>
+                        <div class="machine-info-panel hidden" id="machineInfoPanel">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 실시간 생산 현황</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>금일 생산량</span>
+                            <span class="metric-value" id="dailyProduction">847 / 1,100</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 77%"></div>
+                        </div>
+                        <div class="metric">
+                            <span>전체 가동률</span>
+                            <span class="metric-value" id="overallEfficiency">84.2%</span>
+                        </div>
+                        <div class="production-chart" id="productionChart">
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🎯 품질 현황</div>
+                            <div class="status-indicator status-warning"></div>
+                        </div>
+                        <div class="metric">
+                            <span>검사 통과율</span>
+                            <span class="metric-value" id="passRate">96.8%</span>
+                        </div>
+                        <div class="metric">
+                            <span>불량률</span>
+                            <span class="metric-value" style="color: #e74c3c;" id="defectRate">3.2%</span>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">주요 불량 유형:</div>
+                            <div style="font-size: 0.8rem; color: #7f8c8d;" id="defectTypes">
+                                • 기공: 1.8%<br>
+                                • 치수오차: 0.9%<br>
+                                • 조립불량: 0.5%
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⚙️ 설비 상태</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="equipment-status">
+                            <div class="equipment-item" onclick="selectEquipment('furnace')">
+                                <div class="equipment-icon">🔥</div>
+                                <div style="font-size: 0.8rem;">용해로</div>
+                                <div style="color: #27ae60; font-size: 0.8rem;">정상</div>
+                            </div>
+                            <div class="equipment-item" onclick="selectEquipment('cnc')">
+                                <div class="equipment-icon">⚡</div>
+                                <div style="font-size: 0.8rem;">CNC</div>
+                                <div style="color: #27ae60; font-size: 0.8rem;">정상</div>
+                            </div>
+                            <div class="equipment-item" onclick="selectEquipment('inspector')">
+                                <div class="equipment-icon">🔍</div>
+                                <div style="font-size: 0.8rem;">검사대</div>
+                                <div style="color: #f39c12; font-size: 0.8rem;">주의</div>
+                            </div>
+                            <div class="equipment-item" onclick="selectEquipment('robot')">
+                                <div class="equipment-icon">🤖</div>
+                                <div style="font-size: 0.8rem;">조립기</div>
+                                <div style="color: #27ae60; font-size: 0.8rem;">정상</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🌡️ 환경 모니터링</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>온도</span>
+                            <span class="metric-value" id="temperature">23.4°C</span>
+                        </div>
+                        <div class="metric">
+                            <span>습도</span>
+                            <span class="metric-value" id="humidity">58.2%</span>
+                        </div>
+                        <div class="metric">
+                            <span>용해로 온도</span>
+                            <span class="metric-value" id="furnaceTemp">742°C</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🚨 최근 알람</div>
+                            <div class="status-indicator status-warning"></div>
+                        </div>
+                        <div class="alert-box">
+                            <span class="alert-icon">⚠️</span>
+                            <div>
+                                <div style="font-weight: bold;">검사대 #2 진동 이상</div>
+                                <div style="font-size: 0.8rem; opacity: 0.9;">2분 전</div>
+                            </div>
+                        </div>
+                        <div style="background: rgba(243, 156, 18, 0.1); color: #f39c12; padding: 0.5rem; border-radius: 8px; margin: 0.5rem 0; font-size: 0.8rem;">
+                            <span class="alert-icon">🔧</span>
+                            CNC #3 공구 교체 필요 - 15분 전
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="lines" class="tab-content">
+                <div class="line-selector">
+                    <button class="line-btn active" onclick="selectLine('casting')">주조 라인</button>
+                    <button class="line-btn" onclick="selectLine('machining')">가공 라인</button>
+                    <button class="line-btn" onclick="selectLine('inspection')">검사 라인</button>
+                    <button class="line-btn" onclick="selectLine('assembly')">조립 라인</button>
+                    <button class="line-btn" onclick="selectLine('packaging')">포장/출하</button>
+                </div>
+                <div class="dashboard-grid" id="lineDetailContent">
+                </div>
+            </div>
+
+            <div id="prediction" class="tab-content">
+                <div class="dashboard-grid">
+                    <div class="card wide-card">
+                        <div class="card-header">
+                            <div class="card-title">📈 생산량 예측</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>예상 일일 생산량</span>
+                            <span class="metric-value" id="expectedDaily">1,087개</span>
+                        </div>
+                        <div class="metric">
+                            <span>목표 달성률</span>
+                            <span class="metric-value" id="achievementRate">98.8%</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🔍 병목 구간 분석</div>
+                            <div class="status-indicator status-warning"></div>
+                        </div>
+                        <div style="font-size: 0.9rem;">
+                            <div style="color: #e74c3c; margin: 0.5rem 0;">
+                                <strong>주요 병목:</strong> <span id="mainBottleneck">검사 라인</span>
+                            </div>
+                            <div style="color: #7f8c8d; font-size: 0.8rem;">
+                                • 평균 대기시간: <span id="waitTime">8.3</span>분<br>
+                                • 처리속도: <span id="processingSpeed">85</span>% 목표대비<br>
+                                • 권장사항: <span id="recommendation">검사대 추가 운영</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="inventory" class="tab-content">
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📦 현재 재고</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>완제품</span>
+                            <span class="metric-value" id="finishedGoods">2,847개</span>
+                        </div>
+                        <div class="metric">
+                            <span>반제품</span>
+                            <span class="metric-value" id="wip">394개</span>
+                        </div>
+                        <div class="metric">
+                            <span>안전 재고율</span>
+                            <span class="metric-value" id="safetyStock">112%</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🚚 출하 현황</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>금일 출하량</span>
+                            <span class="metric-value" id="todayShipment">1,150개</span>
+                        </div>
+                        <div class="metric">
+                            <span>대기 출하량</span>
+                            <span class="metric-value" id="pendingShipment">850개</span>
+                        </div>
+                        <div class="metric">
+                            <span>예정 출하</span>
+                            <span class="metric-value" id="scheduledShipment">내일 1,200개</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 전역 변수 및 데이터 ---
+        let scene, camera, renderer, animationId, controls;
+        let raycaster, mouse;
+        let selectedLine = 'casting';
+
+        // --- ✨ 3D 뷰어 관련 전역 변수 ✨ ---
+        const factoryObjects = new THREE.Group();
+        let selectedObject = null;
+        const initialColors = new Map();
+        let animationRunning = true;
+
+        const processMachineInfo = [
+            {PM_ID: 'PM001', Process_Name: '주조', Machine_Name: '주조기1', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 1호기'},
+            {PM_ID: 'PM002', Process_Name: '주조', Machine_Name: '주조기2', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 2호기'},
+            {PM_ID: 'PM003', Process_Name: '주조', Machine_Name: '주조기3', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 3호기'},
+            {PM_ID: 'PM004', Process_Name: '가공', Machine_Name: '가공기1', Standard_Cycle_Time: 1800, Description: '정밀 가공 및 성형 장비 1호기'},
+            {PM_ID: 'PM005', Process_Name: '가공', Machine_Name: '가공기2', Standard_Cycle_Time: 1800, Description: '정밀 가공 및 성형 장비 2호기'},
+            {PM_ID: 'PM006', Process_Name: '검사', Machine_Name: '검사장비', Standard_Cycle_Time: 900, Description: '품질 검사 및 측정 장비'},
+            {PM_ID: 'PM007', Process_Name: '조립', Machine_Name: '조립기', Standard_Cycle_Time: 1200, Description: '부품 조립 및 결합 장비'},
+            {PM_ID: 'PM008', Process_Name: '포장', Machine_Name: '포장기', Standard_Cycle_Time: 600, Description: '자동 포장 및 밀봉 장비'}
+        ];
+        // --- ✨ 3D 뷰어 변수 완료 ✨ ---
+
+        // 데이터 객체들
+        const appData = {
+            productionData: {
+                dailyProduction: 847,
+                target: 1100,
+                overallEfficiency: 84.2
+            },
+            environmentData: {
+                temperature: 23.4,
+                humidity: 58.2,
+                furnaceTemp: 742
+            },
+            chartData: [
+                { value: 42, height: 120 }, { value: 38, height: 90 }, { value: 51, height: 150 },
+                { value: 45, height: 100 }, { value: 49, height: 140 }, { value: 41, height: 95 },
+                { value: 47, height: 130 }
+            ]
+        };
+
+        // 초기화 함수
+        function initialize() {
+            console.log('대시보드 초기화 시작...');
+            updateTime();
+            setInterval(updateTime, 1000);
+            setInterval(simulateRealTimeData, 3000);
+            updateChart();
+            updateLineData('casting');
+            
+            setTimeout(() => {
+                if (typeof THREE !== 'undefined') {
+                    // ✨ 3D 공장 뷰어 초기화 ✨
+                    initFactoryView(); 
+                } else {
+                    console.warn('Three.js를 로드할 수 없습니다. 3D 기능이 비활성화됩니다.');
+                }
+            }, 500);
+            
+            window.addEventListener('resize', handleResize);
+            console.log('대시보드 초기화 완료!');
+        }
+        
+        document.addEventListener('DOMContentLoaded', initialize);
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleString('ko-KR');
+        }
+
+        function setActiveTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // --- ✨ 3D 뷰어 제어 함수들 ✨ ---
+        function toggleAnimation() {
+            animationRunning = !animationRunning;
+            const btn = document.getElementById('animationBtn');
+            if (animationRunning) {
+                btn.textContent = '⏸️ 일시정지';
+                animate();
+            } else {
+                btn.textContent = '▶️ 시작';
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function zoomIn() {
+            if (controls) {
+                controls.dollyIn(1.2);
+            }
+        }
+
+        function zoomOut() {
+            if (controls) {
+                controls.dollyOut(1.2);
+            }
+        }
+
+        function openFullscreenView() {
+            window.open('view.html', '_blank');
+        }
+        // --- ✨ 3D 제어 함수 완료 ✨ ---
+
+        // --- ✨ 3D 팩토리 뷰 관련 함수 ✨ ---
+        function initFactoryView() {
+            try {
+                const container = document.getElementById('factoryViewer');
+                if (!container) return;
+
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x1a2a3a);
+                scene.fog = new THREE.Fog(0x1a2a3a, 30, 100);
+
+                camera = new THREE.PerspectiveCamera(60, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+                camera.position.set(0, 15, 30);
+                camera.lookAt(0, 0, 0);
+
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(container.offsetWidth, container.offsetHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                container.appendChild(renderer.domElement);
+
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.screenSpacePanning = false;
+                controls.minDistance = 5;
+                controls.maxDistance = 50;
+                controls.maxPolarAngle = Math.PI / 2;
+
+                scene.add(new THREE.AmbientLight(0x404040, 1.5));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                dirLight.position.set(10, 20, 5);
+                dirLight.castShadow = true;
+                scene.add(dirLight);
+
+                const floorGeom = new THREE.PlaneGeometry(100, 100);
+                const floorMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.8 });
+                const floor = new THREE.Mesh(floorGeom, floorMat);
+                floor.rotation.x = -Math.PI / 2;
+                floor.receiveShadow = true;
+                scene.add(floor);
+
+                createMachines();
+                scene.add(factoryObjects);
+
+                raycaster = new THREE.Raycaster();
+                mouse = new THREE.Vector2();
+                container.addEventListener('click', onMouseClick);
+                
+                animate();
+                console.log('3D Factory 초기화 완료');
+            } catch (error) {
+                console.error('3D 초기화 오류:', error);
+            }
+        }
+
+        function createMachines() {
+            const machineLayout = {
+                '주조': { x: -20, z: -5, count: 0 },
+                '가공': { x: -5, z: -5, count: 0 },
+                '검사': { x: 10, z: 0, count: 0 },
+                '조립': { x: 20, z: 0, count: 0 },
+                '포장': { x: 20, z: 10, count: 0 }
+            };
+
+            processMachineInfo.forEach(data => {
+                const layout = machineLayout[data.Process_Name];
+                if (!layout) return;
+
+                let machine;
+                switch (data.Process_Name) {
+                    case '주조': machine = createCastingMachine(); break;
+                    case '가공': machine = createProcessingMachine(); break;
+                    case '검사': machine = createInspectionMachine(); break;
+                    case '조립': machine = createAssemblyMachine(); break;
+                    case '포장': machine = createPackagingMachine(); break;
+                }
+
+                if (machine) {
+                    machine.position.set(layout.x, 0, layout.z + layout.count * 8);
+                    machine.userData = data;
+                    
+                    const label = createLabel(data.Machine_Name);
+                    label.position.set(0, 5, 0);
+                    machine.add(label);
+
+                    factoryObjects.add(machine);
+                    layout.count++;
+                }
+            });
+        }
+
+        function createLabel(text) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            context.font = 'Bold 40px Arial';
+            context.fillStyle = 'rgba(255,255,255,0.95)';
+            context.fillText(text, 0, 40);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(10, 5, 1.0);
+            return sprite;
+        }
+
+        function createCastingMachine() {
+            const group = new THREE.Group();
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x5a6d7c });
+            const furnaceMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c });
+            const base = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 6), baseMat);
+            base.position.y = 2;
+            group.add(base);
+            const furnace = new THREE.Mesh(new THREE.CylinderGeometry(2, 2.2, 3, 32), furnaceMat);
+            furnace.position.y = 5.5;
+            group.add(furnace);
+            return group;
+        }
+
+        function createProcessingMachine() {
+            const group = new THREE.Group();
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d });
+            const movingMat = new THREE.MeshStandardMaterial({ color: 0x3498db });
+            const base = new THREE.Mesh(new THREE.BoxGeometry(5, 3, 4), baseMat);
+            base.position.y = 1.5;
+            group.add(base);
+            const arm = new THREE.Mesh(new THREE.BoxGeometry(1, 4, 1), movingMat);
+            arm.position.set(0, 3, 0);
+            group.add(arm);
+            return group;
+        }
+
+        function createInspectionMachine() {
+            const group = new THREE.Group();
+            const tableMat = new THREE.MeshStandardMaterial({ color: 0xbdc3c7 });
+            const scannerMat = new THREE.MeshStandardMaterial({ color: 0x2ecc71 });
+            const table = new THREE.Mesh(new THREE.BoxGeometry(6, 0.5, 4), tableMat);
+            table.position.y = 2;
+            group.add(table);
+            const scannerArm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3, 0.5), scannerMat);
+            scannerArm.position.set(-2.5, 3.5, 0);
+            group.add(scannerArm);
+            const scannerHead = new THREE.Mesh(new THREE.BoxGeometry(5, 0.5, 0.5), scannerMat);
+            scannerHead.position.set(0, 5, 0);
+            group.add(scannerHead);
+            return group;
+        }
+
+        function createAssemblyMachine() {
+            const group = new THREE.Group();
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x95a5a6 });
+            const robotMat = new THREE.MeshStandardMaterial({ color: 0xf39c12 });
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1, 32), baseMat);
+            base.position.y = 0.5;
+            group.add(base);
+            const arm1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3, 0.5), robotMat);
+            arm1.position.y = 2.5;
+            group.add(arm1);
+            const arm2 = new THREE.Mesh(new THREE.BoxGeometry(2, 0.5, 0.5), robotMat);
+            arm2.position.set(1, 4, 0);
+            group.add(arm2);
+            return group;
+        }
+
+        function createPackagingMachine() {
+            const group = new THREE.Group();
+            const conveyorMat = new THREE.MeshStandardMaterial({ color: 0x34495e });
+            const machineMat = new THREE.MeshStandardMaterial({ color: 0x8e44ad });
+            const conveyor = new THREE.Mesh(new THREE.BoxGeometry(10, 0.5, 3), conveyorMat);
+            conveyor.position.y = 1;
+            group.add(conveyor);
+            const machine = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 4), machineMat);
+            machine.position.y = 3;
+            group.add(machine);
+            return group;
+        }
+
+        function onMouseClick(event) {
+            const container = document.getElementById('factoryViewer');
+            const rect = container.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(factoryObjects.children, true);
+
+            if (intersects.length > 0) {
+                let object = intersects[0].object;
+                while (object.parent && !object.userData.PM_ID) {
+                    object = object.parent;
+                }
+                if (object.userData.PM_ID) {
+                    highlightObject(object);
+                    updateInfoPanel(object.userData);
+                }
+            } else {
+                highlightObject(null);
+                updateInfoPanel(null);
+            }
+        }
+
+        function highlightObject(object) {
+            if (selectedObject) {
+                selectedObject.traverse(child => {
+                    if (child.isMesh) {
+                        child.material.emissive.setHex(initialColors.get(child.uuid) || 0x000000);
+                    }
+                });
+            }
+
+            selectedObject = object;
+
+            if (selectedObject) {
+                selectedObject.traverse(child => {
+                    if (child.isMesh) {
+                        initialColors.set(child.uuid, child.material.emissive.getHex());
+                        child.material.emissive.setHex(0x555555);
+                    }
+                });
+            }
+        }
+
+        function updateInfoPanel(data) {
+            const panel = document.getElementById('machineInfoPanel');
+            if (data) {
+                panel.innerHTML = `
+                    <strong>ID:</strong> ${data.PM_ID}<br>
+                    <strong>이름:</strong> ${data.Machine_Name}<br>
+                    <strong>공정:</strong> ${data.Process_Name}<br>
+                    <strong>표준 사이클 타임:</strong> ${data.Standard_Cycle_Time}s<br>
+                    <strong>설명:</strong> ${data.Description}
+                `;
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+        
+        function animate() {
+            if(animationRunning) {
+              animationId = requestAnimationFrame(animate);
+            }
+            if(controls) controls.update();
+            if(renderer) renderer.render(scene, camera);
+        }
+        // --- ✨ 3D 뷰어 함수 완료 ✨ ---
+        
+        function selectLine(lineId) {
+            selectedLine = lineId;
+            const lineButtons = document.querySelectorAll('.line-btn');
+            lineButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateLineData(lineId);
+        }
+
+        function updateLineData(lineId) {
+            const lineDetailContent = document.getElementById('lineDetailContent');
+            const lineDataMap = {
+                casting: `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">주조 라인 - 생산 현황</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>시간당 생산량</span>
+                            <span class="metric-value">47개</span>
+                        </div>
+                        <div class="metric">
+                            <span>가동률</span>
+                            <span class="metric-value">89.2%</span>
+                        </div>
+                        <div class="metric">
+                            <span>불량률</span>
+                            <span class="metric-value">2.1%</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">설비별 상태</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>용해로 온도</span>
+                            <span class="metric-value">742°C</span>
+                        </div>
+                        <div class="metric">
+                            <span>주조 압력</span>
+                            <span class="metric-value">85 bar</span>
+                        </div>
+                        <div class="metric">
+                            <span>냉각 시간</span>
+                            <span class="metric-value">12.3분</span>
+                        </div>
+                    </div>
+                `,
+                machining: `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">가공 라인 - 생산 현황</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>시간당 가공량</span>
+                            <span class="metric-value">43개</span>
+                        </div>
+                        <div class="metric">
+                            <span>CNC 가동률</span>
+                            <span class="metric-value">92.1%</span>
+                        </div>
+                        <div class="metric">
+                            <span>공구 수명</span>
+                            <span class="metric-value">78%</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">CNC 장비 상태</div>
+                            <div class="status-indicator status-warning"></div>
+                        </div>
+                        <div class="metric">
+                            <span>스핀들 속도</span>
+                            <span class="metric-value">8,500 RPM</span>
+                        </div>
+                        <div class="metric">
+                            <span>진동 수준</span>
+                            <span class="metric-value" style="color: #f39c12;">2.3mm/s</span>
+                        </div>
+                        <div class="metric">
+                            <span>냉각수 온도</span>
+                            <span class="metric-value">18°C</span>
+                        </div>
+                    </div>
+                `,
+                inspection: `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">검사 라인 - 품질 현황</div>
+                            <div class="status-indicator status-warning"></div>
+                        </div>
+                        <div class="metric">
+                            <span>검사 통과율</span>
+                            <span class="metric-value">96.8%</span>
+                        </div>
+                        <div class="metric">
+                            <span>재검사율</span>
+                            <span class="metric-value" style="color: #f39c12;">4.2%</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">검사 장비 상태</div>
+                            <div class="status-indicator status-warning"></div>
+                        </div>
+                        <div class="metric">
+                            <span>3D 스캐너</span>
+                            <span class="metric-value">정상</span>
+                        </div>
+                        <div class="metric">
+                            <span>치수 측정기</span>
+                            <span class="metric-value" style="color: #f39c12;">교정 필요</span>
+                        </div>
+                        <div class="metric">
+                            <span>비전 시스템</span>
+                            <span class="metric-value">정상</span>
+                        </div>
+                    </div>
+                `,
+                assembly: `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">조립 라인 - 생산 현황</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>시간당 조립량</span>
+                            <span class="metric-value">45개</span>
+                        </div>
+                        <div class="metric">
+                            <span>로봇 가동률</span>
+                            <span class="metric-value">88.7%</span>
+                        </div>
+                        <div class="metric">
+                            <span>조립 불량률</span>
+                            <span class="metric-value">0.8%</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">로봇 시스템 상태</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>로봇 #1</span>
+                            <span class="metric-value">정상</span>
+                        </div>
+                        <div class="metric">
+                            <span>로봇 #2</span>
+                            <span class="metric-value">정상</span>
+                        </div>
+                        <div class="metric">
+                            <span>컨베이어 속도</span>
+                            <span class="metric-value">15 m/min</span>
+                        </div>
+                    </div>
+                `,
+                packaging: `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">포장/출하 - 현황</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>시간당 포장량</span>
+                            <span class="metric-value">48개</span>
+                        </div>
+                        <div class="metric">
+                            <span>포장 가동률</span>
+                            <span class="metric-value">95.2%</span>
+                        </div>
+                        <div class="metric">
+                            <span>RFID 태그율</span>
+                            <span class="metric-value">100%</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">출하 준비 상태</div>
+                            <div class="status-indicator status-good"></div>
+                        </div>
+                        <div class="metric">
+                            <span>포장 완료</span>
+                            <span class="metric-value">1,150개</span>
+                        </div>
+                        <div class="metric">
+                            <span>출하 대기</span>
+                            <span class="metric-value">23개</span>
+                        </div>
+                        <div class="metric">
+                            <span>트럭 적재율</span>
+                            <span class="metric-value">87%</span>
+                        </div>
+                    </div>
+                `
+            };
+            lineDetailContent.innerHTML = lineDataMap[lineId] || lineDataMap.casting;
+        }
+
+        function selectEquipment(equipmentId) {
+            console.log('Selected equipment:', equipmentId);
+            alert(`${equipmentId} 장비 상세 정보를 표시합니다.`);
+        }
+        
+        function updateChart() {
+            const chartContainer = document.getElementById('productionChart');
+            chartContainer.innerHTML = '';
+            appData.chartData.forEach((bar) => {
+                const barElement = document.createElement('div');
+                barElement.className = 'chart-bar';
+                barElement.style.height = bar.height + 'px';
+                barElement.textContent = bar.value;
+                chartContainer.appendChild(barElement);
+            });
+        }
+        
+        function simulateRealTimeData() {
+            try {
+                appData.productionData.dailyProduction = Math.floor(Math.random() * 50) + 820;
+                const progressPercent = Math.min(100, (appData.productionData.dailyProduction / appData.productionData.target) * 100);
+                document.getElementById('dailyProduction').textContent = `${appData.productionData.dailyProduction} / ${appData.productionData.target}`;
+                document.getElementById('progressFill').style.width = `${progressPercent}%`;
+
+                appData.environmentData.temperature = (Math.random() * 3 + 22).toFixed(1);
+                appData.environmentData.humidity = (Math.random() * 10 + 55).toFixed(1);
+                appData.environmentData.furnaceTemp = Math.floor(Math.random() * 20) + 735;
+
+                document.getElementById('temperature').textContent = `${appData.environmentData.temperature}°C`;
+                document.getElementById('humidity').textContent = `${appData.environmentData.humidity}%`;
+                document.getElementById('furnaceTemp').textContent = `${appData.environmentData.furnaceTemp}°C`;
+
+            } catch (error) {
+                console.error('데이터 시뮬레이션 오류:', error);
+            }
+        }
+
+        function handleResize() {
+            if (camera && renderer) {
+                // ✨ 3D 뷰어 컨테이너 ID를 #factoryViewer로 설정 ✨
+                const container = document.getElementById('factoryViewer'); 
+                if (container) {
+                    camera.aspect = container.offsetWidth / container.offsetHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.offsetWidth, container.offsetHeight);
+                }
+            }
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            if (renderer) {
+                renderer.dispose();
+            }
+        });
+    </script>
+</body>
+</html>
