@@ -4,10 +4,10 @@
 
 <mapper namespace="com.example.demo.mapper.PowerMapper">
 
-    <select id="selectTotalPowerConsumptionByDate" resultType="double">
-        SELECT SUM(power_consumption) AS total_consumption
+    <select id="selectTotalPowerConsumptionByDateAndPmId" resultType="double">
+        SELECT COALESCE(SUM(power_consumption), 0)
         FROM power_data
-        WHERE DATE(timestamp) = CURDATE();
+        WHERE DATE(timestamp) = CURDATE() AND pm_id = #{pmId};
     </select>
 
 </mapper>

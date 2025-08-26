@@ -36,6 +36,7 @@ public class MainDashboardController {
         summary.put("factory_temperature", dashboardService.getTemperature() + "°C");
         summary.put("factory_humidity", dashboardService.getHumidity() + "%");
         summary.put("total_power_consumption", dashboardService.getPowerConsumption());
+        summary.put("defect_rate", dashboardService.getDefectRate());
 
         // 메시지 및 상태 정보는 그대로 유지
         summary.put("message", "메인 대시보드 데이터가 정상적으로 조회되었습니다.");

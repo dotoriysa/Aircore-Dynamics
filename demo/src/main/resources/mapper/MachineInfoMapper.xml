@@ -9,4 +9,10 @@
         FROM process_machine_info
     </select>
 
+    <select id="getPmIdsByProcessName" resultType="java.lang.String">
+        SELECT pm_id
+        FROM process_machine_info
+        WHERE process_name = #{processName}
+    </select>
+
 </mapper>
