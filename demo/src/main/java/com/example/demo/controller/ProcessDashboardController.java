@@ -26,7 +26,7 @@ public class ProcessDashboardController {
 
         // 서비스 메서드를 호출하여 각 항목의 값을 계산하고 Map에 추가
         // 이 때, @PathVariable로 받은 processName을 각 서비스 메서드에 전달합니다.
-        summary.put("total_operation_rate", String.format("%.2f", processDashboardService.getOperationRate(processName)));
+        summary.put("total_operation_rate", processDashboardService.getOperationRate(processName));
         summary.put("operating_machines", processDashboardService.getOperatingMachines(processName));
         summary.put("daily_total_production", processDashboardService.getDailyProduction(processName));
         summary.put("total_power_consumption", processDashboardService.getPowerConsumption(processName));

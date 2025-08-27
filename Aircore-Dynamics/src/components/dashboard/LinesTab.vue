@@ -136,28 +136,39 @@ function updateAllMachineStatuses() {
 }
 
 async function updateSelectedMachine(data) {
-  selectedMachine.value = data;
-  selectedMachineRealtimeData.value = null;
+ selectedMachine.value = data;
+ selectedMachineRealtimeData.value = null;
 
-  if (data) {
-    try {
-      const response = await fetch(`/api/machine/status/${data.PM_ID}`);
-      if (!response.ok) throw new Error('Machine data fetch failed');
-      selectedMachineRealtimeData.value = await response.json();
-    } catch (error) {
-      console.error("Failed to fetch machine status:", error);
-      setTimeout(() => {
-        if (selectedMachine.value && selectedMachine.value.PM_ID === data.PM_ID) {
-          selectedMachineRealtimeData.value = {
-            hourly_production: Math.floor(Math.random() * 20 + 30),
-            operation_rate: (Math.random() * 5 + 95).toFixed(1),
-            power_consumption: (Math.random() * 10 + 50).toFixed(1),
-            defect_rate: (Math.random() * 2).toFixed(1)
-          };
-        }
-      }, 500);
-    }
-  }
+ if (data) {
+   try {
+     const response = await fetch(`/api/machine-dashboard/${data.PM_ID}`);
+     if (!response.ok) throw new Error('Machine data fetch failed');
+     
+     const machineData = await response.json();
+     
+     // 컨트롤러 응답 구조에 맞게 데이터 매핑
+     selectedMachineRealtimeData.value = {
+       hourly_production: machineData.dailyProduction || 0,
+       operation_rate: machineData.operationRate || "0.00",
+       power_consumption: machineData.powerConsumption || "0.00",
+       defect_rate: machineData.defectRate || "0.00",
+       status: machineData.status || "UNKNOWN"
+     };
+   } catch (error) {
+     console.error("Failed to fetch machine status:", error);
+     setTimeout(() => {
+       if (selectedMachine.value && selectedMachine.value.PM_ID === data.PM_ID) {
+         selectedMachineRealtimeData.value = {
+           hourly_production: Math.floor(Math.random() * 20 + 30),
+           operation_rate: (Math.random() * 5 + 95).toFixed(1),
+           power_consumption: (Math.random() * 10 + 50).toFixed(1),
+           defect_rate: (Math.random() * 2).toFixed(1),
+           status: "ERROR"
+         };
+       }
+     }, 500);
+   }
+ }
 }
 
 async function fetchData(lineKey) {

@@ -222,10 +222,10 @@ INSERT IGNORE INTO machine_status_data (timestamp, pm_id, status, status_duratio
 (CONCAT(CURDATE(), ' 23:00:00'), 'PM002', 0, 0, NULL),
 (CONCAT(CURDATE(), ' 23:00:00'), 'PM003', 0, 0, NULL),
 (CONCAT(CURDATE(), ' 23:00:00'), 'PM004', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM005', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM006', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM007', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM008', 0, 0, NULL);
+(CONCAT(CURDATE(), ' 23:00:00'), 'PM005', 1, 0, NULL),
+(CONCAT(CURDATE(), ' 23:00:00'), 'PM006', 1, 0, NULL),
+(CONCAT(CURDATE(), ' 23:00:00'), 'PM007', 1, 0, NULL),
+(CONCAT(CURDATE(), ' 23:00:00'), 'PM008', 1, 0, NULL);
 
 
 -- 데이터 삽입 완료 확인

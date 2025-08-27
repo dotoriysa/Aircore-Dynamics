@@ -229,17 +229,46 @@ async function updateInfoPanel(data) {
 
   if (data) {
     try {
-      const response = await fetch(`/api/machine/status/${data.PM_ID}`);
-      if (!response.ok) throw new Error('Machine data fetch failed');
-      selectedMachineRealtimeData.value = await response.json();
+      console.log('Requesting machine data for PM_ID:', data.PM_ID); // 디버깅용
+      
+      const response = await fetch(`/api/machine-dashboard/${data.PM_ID}`);
+      
+      console.log('Response status:', response.status); // 상태 코드 확인
+      console.log('Response headers:', response.headers); // 헤더 확인
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`Machine data fetch failed: ${response.status} - ${errorText}`);
+      }
+      
+      const machineData = await response.json();
+      console.log('Received machine data:', machineData); // 받은 데이터 확인
+      
+      // 컨트롤러 응답 구조에 맞게 데이터 매핑
+      selectedMachineRealtimeData.value = {
+        hourly_production: machineData.dailyProduction || 0,
+        operation_rate: machineData.operationRate || "0.00",
+        power_consumption: machineData.powerConsumption || "0.00",
+        defect_rate: machineData.defectRate || "0.00",
+        status: machineData.status || "UNKNOWN"
+      };
     } catch (error) {
       console.error("Failed to fetch machine status:", error);
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        pmId: data.PM_ID
+      });
+      
+      // 폴백 데이터 (에러 시에만 사용)
       setTimeout(() => {
         selectedMachineRealtimeData.value = {
           hourly_production: Math.floor(Math.random() * 20 + 30),
           operation_rate: (Math.random() * 5 + 95).toFixed(1),
           power_consumption: (Math.random() * 10 + 50).toFixed(1),
-          defect_rate: (Math.random() * 2).toFixed(1)
+          defect_rate: (Math.random() * 2).toFixed(1),
+          status: "ERROR"
         };
       }, 500);
     }
