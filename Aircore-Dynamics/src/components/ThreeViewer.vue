@@ -40,7 +40,6 @@ onMounted(() => {
 onUnmounted(() => {
   cancelAnimationFrame(animationId);
   window.removeEventListener('resize', handleResize);
-  // Clean up Three.js resources
   if (renderer) {
     renderer.dispose();
   }
@@ -51,48 +50,47 @@ function init() {
   const container = containerRef.value;
   if (!container) return;
 
-  // Scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x1a2a3a);
-  scene.fog = new THREE.Fog(0x1a2a3a, 40, 120);
+  scene.fog = new THREE.Fog(0x1a2a3a, 30, 100);
 
-  // Camera
   camera = new THREE.PerspectiveCamera(60, container.offsetWidth / container.offsetHeight, 0.1, 1000);
-  camera.position.set(25, 15, 25);
+  camera.position.set(0, 15, 30);
+  camera.lookAt(0, 0, 0);
 
-  // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(container.offsetWidth, container.offsetHeight);
   renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.appendChild(renderer.domElement);
 
-  // Controls
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.target.set(0, 2, 0);
-  camera.lookAt(controls.target);
+  controls.dampingFactor = 0.05;
+  controls.screenSpacePanning = false;
+  controls.minDistance = 5;
+  controls.maxDistance = 50;
+  controls.maxPolarAngle = Math.PI / 2;
+  controls.target.set(0, 0, 0);
 
-  // Lights
-  scene.add(new THREE.AmbientLight(0x404040, 1.5));
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  // ✨ 조명 강도를 높여 더 밝게 수정
+  scene.add(new THREE.AmbientLight(0x404040, 2.5)); // 주변광 강화
+  const dirLight = new THREE.DirectionalLight(0xffffff, 2.0); // 직사광 강화
   dirLight.position.set(10, 20, 5);
   dirLight.castShadow = true;
   scene.add(dirLight);
 
-  // Floor
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(100, 100),
-    new THREE.MeshStandardMaterial({ color: 0x2c3e50 })
+    new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.8 })
   );
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   scene.add(floor);
 
-  // Machines
   createMachines();
   scene.add(factoryObjects);
 
-  // Interaction
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
   container.addEventListener('click', onMouseClick);
@@ -121,8 +119,8 @@ function toggleAnimation() {
 function resetView() {
   isTopView = false;
   controls.autoRotate = false;
-  camera.position.set(25, 15, 25);
-  controls.target.set(0, 2, 0);
+  camera.position.set(0, 15, 30);
+  controls.target.set(0, 0, 0);
 }
 
 function toggleTopView() {
@@ -138,17 +136,13 @@ function toggleTopView() {
 
 function focusNextEquipment() {
   if (factoryObjects.children.length === 0) return;
-
   const equipment = factoryObjects.children[currentFocusIndex];
   const pos = new THREE.Vector3();
   equipment.getWorldPosition(pos);
-  
   camera.position.set(pos.x + 8, pos.y + 8, pos.z + 8);
   controls.target.copy(pos);
-  
   emit('object-selected', equipment.userData);
   highlightObject(equipment);
-
   currentFocusIndex = (currentFocusIndex + 1) % factoryObjects.children.length;
   controls.autoRotate = false;
   isTopView = false;
@@ -160,19 +154,25 @@ function toggleAutoRotate() {
 }
 
 function moveCamera(direction) {
+    if (direction === 'zoom-in') {
+      controls.dollyIn(1.2);
+      return;
+    }
+    if (direction === 'zoom-out') {
+      controls.dollyOut(1.2);
+      return;
+    }
     const moveSpeed = 1.0;
     const forward = new THREE.Vector3();
     camera.getWorldDirection(forward);
     forward.y = 0;
     forward.normalize();
     const right = new THREE.Vector3().crossVectors(camera.up, forward).normalize();
-    
     let moveVector;
     if (direction === 'w') moveVector = forward;
     if (direction === 's') moveVector = forward.clone().negate();
-    if (direction === 'a') moveVector = right.clone().negate();
-    if (direction === 'd') moveVector = right;
-
+    if (direction === 'a') moveVector = right;
+    if (direction === 'd') moveVector = right.clone().negate();
     if (moveVector) {
         camera.position.addScaledVector(moveVector, moveSpeed);
         controls.target.addScaledVector(moveVector, moveSpeed);
@@ -211,10 +211,8 @@ function onMouseClick(event) {
   const rect = container.getBoundingClientRect();
   mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
-
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(factoryObjects.children, true);
-
   if (intersects.length > 0) {
     let object = intersects[0].object;
     while (object.parent && !object.userData.PM_ID) {
@@ -238,9 +236,7 @@ function highlightObject(object) {
             }
         });
     }
-
     selectedObject = object;
-
     if (selectedObject) {
         selectedObject.traverse(child => {
             if (child.isMesh) {
@@ -251,7 +247,20 @@ function highlightObject(object) {
     }
 }
 
-// --- Machine Creation (same as original, but uses props.machineInfo) ---
+// ✨ 라벨 생성 함수 추가
+function createLabel(text) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = 'Bold 40px Arial';
+    context.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    context.fillText(text, 0, 40);
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(10, 5, 1.0);
+    return sprite;
+}
+
 function createMachines() {
     const machineLayout = { '주조': { x: -20, z: -5, count: 0 }, '가공': { x: -5, z: -5, count: 0 }, '검사': { x: 10, z: 0, count: 0 }, '조립': { x: 20, z: 0, count: 0 }, '포장': { x: 20, z: 10, count: 0 } };
     props.machineInfo.forEach(data => {
@@ -268,19 +277,23 @@ function createMachines() {
         if (machine) {
             machine.position.set(layout.x, 0, layout.z + layout.count * 8);
             machine.userData = data;
-            // Labels can be added here if needed
+
+            // ✨ 생성된 라벨을 머신 그룹에 추가
+            const label = createLabel(data.Machine_Name);
+            label.position.set(0, 5, 0); // 머신 위쪽에 위치하도록 설정
+            machine.add(label);
+
             factoryObjects.add(machine);
             layout.count++;
         }
     });
 }
-// Functions for creating machine shapes (createCastingMachine, etc.)
-// These are direct copies from the original HTML file's script
-function createCastingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:15158268,roughness:.6}),f=new THREE.MeshStandardMaterial({color:5926396,metalness:.8}),m=new THREE.Mesh(new THREE.BoxGeometry(6,4,6),b);m.position.y=2,g.add(m);const a=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,3,32),f);return a.position.y=5.5,g.add(a),g}
-function createProcessingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:3447003,roughness:.5}),f=new THREE.MeshStandardMaterial({color:8359053,metalness:.7}),m=new THREE.Mesh(new THREE.BoxGeometry(5,3,4),b);m.position.y=1.5,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(1,4,1),f);return a.position.set(0,3,0),g.add(a),g}
-function createInspectionMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:12434871}),f=new THREE.MeshStandardMaterial({color:3066379,emissive:1127185}),m=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),b);m.position.y=2,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);a.position.set(-2.5,3.5,0),g.add(a);const c=new THREE.Mesh(new THREE.BoxGeometry(5,.5,.5),f);return c.position.set(0,5,0),g.add(c),g}
-function createAssemblyMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:9807254}),f=new THREE.MeshStandardMaterial({color:15998482,roughness:.3}),m=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1,32),b);m.position.y=.5,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);a.position.y=2.5,g.add(a);const c=new THREE.Mesh(new THREE.BoxGeometry(2,.5,.5),f);return c.position.set(1,4,0),g.add(c),g}
-function createPackagingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:3426654}),f=new THREE.MeshStandardMaterial({color:9322925,roughness:.7}),m=new THREE.Mesh(new THREE.BoxGeometry(10,.5,3),b);m.position.y=1,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(3,4,4),f);return a.position.y=3,g.add(a),g}
+// --- 재질 색상 원본과 동일하게 수정 ---
+function createCastingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x5a6d7c}),f=new THREE.MeshStandardMaterial({color:0xe74c3c}),m=new THREE.Mesh(new THREE.BoxGeometry(6,4,6),b);m.position.y=2,g.add(m);const a=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,3,32),f);return a.position.y=5.5,g.add(a),g}
+function createProcessingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x7f8c8d}),f=new THREE.MeshStandardMaterial({color:0x3498db}),m=new THREE.Mesh(new THREE.BoxGeometry(5,3,4),b);m.position.y=1.5,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(1,4,1),f);return a.position.set(0,3,0),g.add(a),g}
+function createInspectionMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0xbdc3c7}),f=new THREE.MeshStandardMaterial({color:0x2ecc71}),m=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),b);m.position.y=2,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);a.position.set(-2.5,3.5,0),g.add(a);const c=new THREE.Mesh(new THREE.BoxGeometry(5,.5,.5),f);return c.position.set(0,5,0),g.add(c),g}
+function createAssemblyMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x95a5a6}),f=new THREE.MeshStandardMaterial({color:0xf39c12}),m=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1,32),b);m.position.y=.5,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);a.position.y=2.5,g.add(a);const c=new THREE.Mesh(new THREE.BoxGeometry(2,.5,.5),f);return c.position.set(1,4,0),g.add(c),g}
+function createPackagingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x34495e}),f=new THREE.MeshStandardMaterial({color:0x8e44ad}),m=new THREE.Mesh(new THREE.BoxGeometry(10,.5,3),b);m.position.y=1,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(3,4,4),f);return a.position.y=3,g.add(a),g}
 
 </script>
 
