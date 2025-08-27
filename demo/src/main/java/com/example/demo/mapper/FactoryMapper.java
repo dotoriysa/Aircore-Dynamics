@@ -1,19 +1,14 @@
 package com.example.demo.mapper;
 
+import com.example.demo.model.EnvironmentData;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface FactoryMapper {
 
     /**
-     * 공장 온습도 테이블에서 가장 최근 온도를 조회합니다.
-     * @return 최신 온도
+     * 공장 온습도 테이블에서 가장 최근 온습도 데이터를 조회합니다.
+     * @return 최신 환경 데이터 객체
      */
-    Double selectLatestTemperature();
-
-    /**
-     * 공장 온습도 테이블에서 가장 최근 습도를 조회합니다.
-     * @return 최신 습도
-     */
-    Double selectLatestHumidity();
+    EnvironmentData selectLatestEnvironmentData();
 }

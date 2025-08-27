@@ -4,15 +4,13 @@
 
 <mapper namespace="com.example.demo.mapper.FactoryMapper">
 
-    <select id="selectLatestTemperature" resultType="double">
-        SELECT temperature
-        FROM environment_data ORDER BY timestamp DESC
-        LIMIT 1
-    </select>
-
-    <select id="selectLatestHumidity" resultType="double">
-        SELECT humidity
-        FROM environment_data ORDER BY timestamp DESC
+    <select id="selectLatestEnvironmentData" resultType="com.example.demo.model.EnvironmentData">
+        SELECT id,
+        timestamp,
+        temperature,
+        humidity
+        FROM environment_data
+        ORDER BY timestamp DESC
         LIMIT 1
     </select>
 

@@ -4,10 +4,18 @@
 
 <mapper namespace="com.example.demo.mapper.PowerMapper">
 
-    <select id="selectTotalPowerConsumptionByDateAndPmId" resultType="double">
-        SELECT COALESCE(SUM(power_consumption), 0)
-        FROM power_data
-        WHERE DATE(timestamp) = CURDATE() AND pm_id = #{pmId};
+    <select id="selectAllPowerDataRecords" resultType="com.example.demo.model.PowerData">
+        <![CDATA[
+        SELECT
+            timestamp,
+            power_consumption
+        FROM
+            power_data
+        WHERE
+            pm_id = #{pmId}
+        ORDER BY
+            timestamp ASC
+        ]]>
     </select>
 
 </mapper>

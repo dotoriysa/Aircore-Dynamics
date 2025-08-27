@@ -1,22 +1,24 @@
 package com.example.demo.mapper;
 
+import com.example.demo.model.MachineStatusData;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import java.util.List;
 
 @Mapper
 public interface MachineStatusMapper {
 
     /**
-     * 특정 장비의 가장 최근 상태를 조회하여, 가동 중인 장비의 수를 반환합니다.
+     * 특정 장비의 가장 최근 가동 상태 데이터를 조회합니다.
      * @param pmId 조회할 장비 ID
-     * @return 가동 중인 장비 수 (0 또는 1)
+     * @return 최신 장비 가동 상태 객체
      */
-    Integer selectOperatingMachinesCount(@Param("pmId") String pmId);
+    MachineStatusData selectLatestMachineStatus(@Param("pmId") String pmId);
 
     /**
-     * 특정 장비의 총 가동시간을 초 단위로 계산하여 반환합니다.
+     * 특정 장비의 모든 상태 기록을 시간 순으로 조회합니다.
      * @param pmId 조회할 장비 ID
-     * @return 해당 장비의 총 가동시간 (초)
+     * @return 장비 가동 상태 데이터 목록
      */
-    Double selectGrandTotalOperatingSeconds(@Param("pmId") String pmId);
+    List<MachineStatusData> selectAllMachineStatusRecords(@Param("pmId") String pmId);
 }
