@@ -11,4 +11,10 @@ public interface FactoryMapper {
      * @return 최신 환경 데이터 객체
      */
     EnvironmentData selectLatestEnvironmentData();
+
+    /**
+     * 새로운 온습도 데이터를 테이블에 추가합니다.
+     * @param data 추가할 환경 데이터 객체
+     */
+    void insertEnvironmentData(EnvironmentData data);
 }

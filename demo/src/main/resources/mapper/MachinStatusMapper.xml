@@ -4,6 +4,21 @@
 
 <mapper namespace="com.example.demo.mapper.MachineStatusMapper">
 
+    <!-- 장비 상태 데이터 삽입 -->
+    <insert id="insertMachineStatusData" parameterType="com.example.demo.model.MachineStatusData">
+        <![CDATA[
+        INSERT INTO machine_status_data (
+            timestamp,
+            pm_id,
+            status
+        ) VALUES (
+            #{timestamp},
+            #{pmId},
+            #{status}
+        )
+        ]]>
+    </insert>
+
     <select id="selectLatestMachineStatus" resultType="com.example.demo.model.MachineStatusData">
         <![CDATA[
         SELECT

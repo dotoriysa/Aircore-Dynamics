@@ -14,4 +14,9 @@
         LIMIT 1
     </select>
 
+    <insert id="insertEnvironmentData" parameterType="com.example.demo.model.EnvironmentData">
+        INSERT INTO environment_data (timestamp, temperature, humidity)
+        VALUES (#{timestamp}, #{temperature}, #{humidity})
+    </insert>
+
 </mapper>
