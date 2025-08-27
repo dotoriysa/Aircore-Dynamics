@@ -16,6 +16,10 @@ const props = defineProps({
   highlightedProcess: {
     type: String,
     default: null
+  },
+  machineStatuses: {
+    type: Object,
+    default: () => ({})
   }
 });
 const emit = defineEmits(['object-selected']);
@@ -27,13 +31,13 @@ let animationId;
 const factoryObjects = new THREE.Group();
 let selectedObject = null;
 const initialColors = new Map();
+const animatedParts = [];
 
 // --- State ---
 let isAnimationRunning = true;
 let isTopView = false;
 let currentFocusIndex = 0;
 
-// ✨ 각 공정별 최적 카메라 위치 정의
 const processCameraPositions = {
     '주조': { pos: new THREE.Vector3(-30, 15, 5), target: new THREE.Vector3(-20, 2, 5) },
     '가공': { pos: new THREE.Vector3(-5, 15, 15), target: new THREE.Vector3(-5, 2, 0) },
@@ -107,28 +111,56 @@ function init() {
   container.addEventListener('click', onMouseClick);
 }
 
-
-// --- Animation Loop ---
 function animate() {
   animationId = requestAnimationFrame(animate);
+  
+  const time = Date.now() * 0.005;
+  
+  animatedParts.forEach(part => {
+    if (part.machine.userData.status === 'running') {
+      switch (part.type) {
+        case 'press':
+          part.mesh.position.y = part.initialY + Math.sin(time) * 0.5;
+          break;
+        case 'rotate':
+          part.mesh.rotation.y += 0.05;
+          break;
+        case 'slide':
+           part.mesh.position.x = part.initialX + Math.cos(time) * 2;
+           break;
+      }
+    }
+  });
+
   if (controls) controls.update();
   if (renderer) renderer.render(scene, camera);
 }
 
-// Prop 변경을 감지하여 설비 가시성을 업데이트
 watch(() => props.highlightedProcess, (newProcess) => {
   updateMachineVisibility(newProcess);
 });
 
-// ✨ 수정된 부분: 설비 가시성 업데이트 함수
+watch(() => props.machineStatuses, (newStatuses) => {
+  if (!factoryObjects || factoryObjects.children.length === 0) return;
+
+  factoryObjects.children.forEach(machine => {
+    const statusData = newStatuses[machine.userData.PM_ID];
+    if (statusData) {
+      machine.userData.status = statusData.status;
+      const lamp = machine.getObjectByName('towerLamp');
+      if (lamp) {
+        updateTowerLamp(lamp, statusData.status);
+      }
+    }
+  });
+}, { deep: true });
+
 function updateMachineVisibility(processName) {
     if (!factoryObjects || factoryObjects.children.length === 0) return;
-
     factoryObjects.children.forEach(machine => {
         const isTarget = machine.userData.Process_Name === processName;
         machine.traverse(child => {
             if (child.isMesh) {
-                // 항상 투명도를 활성화하고 opacity 값만 조절
                 child.material.transparent = true;
                 if (processName === null) {
                     child.material.opacity = 1.0;
@@ -140,37 +172,27 @@ function updateMachineVisibility(processName) {
     });
 }
 
-// ✨ 추가된 부분: 특정 공정에 카메라 포커스를 맞추는 함수
 function focusOnProcess(processName) {
     const view = processCameraPositions[processName];
     if (view && camera && controls) {
-        // 부드러운 이동을 위해 tweening 로직을 간단하게 구현 (requestAnimationFrame 사용)
         const startPos = camera.position.clone();
         const startTarget = controls.target.clone();
-        let duration = 500; // 0.5초
+        let duration = 500;
         let startTime = null;
-
         function move(time) {
             if (startTime === null) startTime = time;
             const elapsed = time - startTime;
-            const t = Math.min(elapsed / duration, 1); // 0에서 1 사이의 진행률
-
+            const t = Math.min(elapsed / duration, 1);
             camera.position.lerpVectors(startPos, view.pos, t);
             controls.target.lerpVectors(startTarget, view.target, t);
-
-            if (t < 1) {
-                requestAnimationFrame(move);
-            }
+            if (t < 1) requestAnimationFrame(move);
         }
         requestAnimationFrame(move);
-
     } else {
         resetView();
     }
 }
 
-
-// --- Public Methods (exposed to parent) ---
 function toggleAnimation() {
   isAnimationRunning = !isAnimationRunning;
   if (isAnimationRunning) {
@@ -180,15 +202,12 @@ function toggleAnimation() {
   }
   return isAnimationRunning;
 }
-
 function resetView() {
   isTopView = false;
   controls.autoRotate = false;
-  // 리셋 시 기본 뷰로 이동
   focusOnProcess(null);
   updateMachineVisibility(props.highlightedProcess);
 }
-
 function toggleTopView() {
   isTopView = !isTopView;
   controls.autoRotate = false;
@@ -199,44 +218,30 @@ function toggleTopView() {
     resetView();
   }
 }
-
 function focusNextEquipment() {
   if (factoryObjects.children.length === 0) return;
-
   const relevantObjects = props.highlightedProcess
     ? factoryObjects.children.filter(m => m.userData.Process_Name === props.highlightedProcess)
     : factoryObjects.children;
-
   if (relevantObjects.length === 0) return;
-  
   currentFocusIndex = (currentFocusIndex + 1) % relevantObjects.length;
   const equipment = relevantObjects[currentFocusIndex];
-  
   const pos = new THREE.Vector3();
   equipment.getWorldPosition(pos);
   camera.position.set(pos.x + 8, pos.y + 8, pos.z + 8);
   controls.target.copy(pos);
   emit('object-selected', equipment.userData);
   highlightObject(equipment);
-
   controls.autoRotate = false;
   isTopView = false;
 }
-
 function toggleAutoRotate() {
   controls.autoRotate = !controls.autoRotate;
   if (controls.autoRotate) isTopView = false;
 }
-
 function moveCamera(direction) {
-    if (direction === 'zoom-in') {
-      controls.dollyIn(1.2);
-      return;
-    }
-    if (direction === 'zoom-out') {
-      controls.dollyOut(1.2);
-      return;
-    }
+    if (direction === 'zoom-in') { controls.dollyIn(1.2); return; }
+    if (direction === 'zoom-out') { controls.dollyOut(1.2); return; }
     const moveSpeed = 1.0;
     const forward = new THREE.Vector3();
     camera.getWorldDirection(forward);
@@ -262,18 +267,10 @@ function moveCamera(direction) {
 }
 
 defineExpose({
-  toggleAnimation,
-  resetView,
-  toggleTopView,
-  focusNextEquipment,
-  toggleAutoRotate,
-  moveCamera,
-  focusOnProcess,
-  handleResize 
+  toggleAnimation, resetView, toggleTopView, focusNextEquipment,
+  toggleAutoRotate, moveCamera, focusOnProcess, handleResize 
 });
 
-
-// --- Internal Functions ---
 function handleResize() {
   if (camera && renderer) {
     const container = containerRef.value;
@@ -282,7 +279,6 @@ function handleResize() {
     renderer.setSize(container.offsetWidth, container.offsetHeight);
   }
 }
-
 function onMouseClick(event) {
   const container = containerRef.value;
   const rect = container.getBoundingClientRect();
@@ -295,8 +291,6 @@ function onMouseClick(event) {
     while (object.parent && !object.userData.PM_ID) {
       object = object.parent;
     }
-    
-    // opacity가 0.5 미만인 객체는 클릭 방지
     const isVisible = object.children[0].material.opacity > 0.5;
     if (object.userData.PM_ID && isVisible) {
       highlightObject(object);
@@ -307,7 +301,6 @@ function onMouseClick(event) {
     emit('object-selected', null);
   }
 }
-
 function highlightObject(object) {
     if (selectedObject) {
         selectedObject.traverse(child => {
@@ -326,7 +319,6 @@ function highlightObject(object) {
         });
     }
 }
-
 function createLabel(text) {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -340,6 +332,58 @@ function createLabel(text) {
     return sprite;
 }
 
+function createTowerLamp() {
+  const lampGroup = new THREE.Group();
+  lampGroup.name = 'towerLamp';
+
+  const createLight = (color, y) => {
+    const material = new THREE.MeshStandardMaterial({ color: color, emissive: 0x000000 });
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.4, 16), material);
+    mesh.position.y = y;
+    return mesh;
+  };
+
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 1.5, 8),
+    new THREE.MeshStandardMaterial({ color: 0x888888 })
+  );
+  pole.position.y = 0.75;
+  lampGroup.add(pole);
+
+  const greenLight = createLight(0x00ff00, 1.3);
+  greenLight.name = 'green';
+  lampGroup.add(greenLight);
+
+  const yellowLight = createLight(0xffff00, 0.8);
+  yellowLight.name = 'yellow';
+  lampGroup.add(yellowLight);
+
+  const redLight = createLight(0xff0000, 0.3);
+  redLight.name = 'red';
+  lampGroup.add(redLight);
+  
+  return lampGroup;
+}
+
+function updateTowerLamp(lamp, status) {
+  const lights = {
+    green: lamp.getObjectByName('green'),
+    yellow: lamp.getObjectByName('yellow'),
+    red: lamp.getObjectByName('red'),
+  };
+  
+  Object.values(lights).forEach(light => light.material.emissive.setHex(0x000000));
+
+  if (status === 'running' && lights.green) {
+    lights.green.material.emissive.setHex(0x00ff00);
+  } else if (status === 'idle' && lights.yellow) {
+    lights.yellow.material.emissive.setHex(0xffff00);
+  } else if (status === 'stopped' && lights.red) {
+    lights.red.material.emissive.setHex(0xff0000);
+  }
+}
+
+// ✨✨✨ --- 수정된 부분 --- ✨✨✨
 function createMachines() {
     const machineLayout = { '주조': { x: -20, z: -5, count: 0 }, '가공': { x: -5, z: -5, count: 0 }, '검사': { x: 10, z: 0, count: 0 }, '조립': { x: 20, z: 0, count: 0 }, '포장': { x: 20, z: 10, count: 0 } };
     props.machineInfo.forEach(data => {
@@ -358,8 +402,23 @@ function createMachines() {
             machine.userData = data;
             
             const label = createLabel(data.Machine_Name);
-            label.position.set(0, 5, 0);
+
+            if (data.Process_Name === '주조') {
+                label.position.set(0, 6.5, 0);
+            } else {
+                label.position.set(0, 5, 0);
+            }
             machine.add(label);
+
+            const towerLamp = createTowerLamp();
+            
+            // ✨ 1. 주조 및 검사 장비의 타워 램프 높이만 특별히 조정
+            if (data.Process_Name === '주조' || data.Process_Name === '검사') {
+                towerLamp.position.set(2.5, 7, 0); // 이 장비들만 램프를 더 높게 설정
+            } else {
+                towerLamp.position.set(2.5, 5, 0); // 나머지 장비들은 기존 높이 유지
+            }
+            machine.add(towerLamp);
 
             factoryObjects.add(machine);
             layout.count++;
@@ -367,12 +426,82 @@ function createMachines() {
     });
     updateMachineVisibility(props.highlightedProcess);
 }
-// --- 재질 함수들(이하 동일) ---
-function createCastingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x5a6d7c}),f=new THREE.MeshStandardMaterial({color:0xe74c3c}),m=new THREE.Mesh(new THREE.BoxGeometry(6,4,6),b);m.position.y=2,g.add(m);const a=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,3,32),f);return a.position.y=5.5,g.add(a),g}
-function createProcessingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x7f8c8d}),f=new THREE.MeshStandardMaterial({color:0x3498db}),m=new THREE.Mesh(new THREE.BoxGeometry(5,3,4),b);m.position.y=1.5,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(1,4,1),f);return a.position.set(0,3,0),g.add(a),g}
-function createInspectionMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0xbdc3c7}),f=new THREE.MeshStandardMaterial({color:0x2ecc71}),m=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),b);m.position.y=2,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);a.position.set(-2.5,3.5,0),g.add(a);const c=new THREE.Mesh(new THREE.BoxGeometry(5,.5,.5),f);return c.position.set(0,5,0),g.add(c),g}
-function createAssemblyMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x95a5a6}),f=new THREE.MeshStandardMaterial({color:0xf39c12}),m=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1,32),b);m.position.y=.5,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);a.position.y=2.5,g.add(a);const c=new THREE.Mesh(new THREE.BoxGeometry(2,.5,.5),f);return c.position.set(1,4,0),g.add(c),g}
-function createPackagingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x34495e}),f=new THREE.MeshStandardMaterial({color:0x8e44ad}),m=new THREE.Mesh(new THREE.BoxGeometry(10,.5,3),b);m.position.y=1,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(3,4,4),f);return a.position.y=3,g.add(a),g}
+// ✨✨✨ --- 여기까지 --- ✨✨✨
+
+
+function createCastingMachine(){
+  const g = new THREE.Group();
+  const b = new THREE.MeshStandardMaterial({color:0x5a6d7c});
+  const f = new THREE.MeshStandardMaterial({color:0xe74c3c});
+  const m = new THREE.Mesh(new THREE.BoxGeometry(6,4,6),b);
+  m.position.y=2;
+  g.add(m);
+  const a = new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,3,32),f);
+  a.position.y=5.5;
+  g.add(a);
+  animatedParts.push({ mesh: a, type: 'press', initialY: a.position.y, machine: g });
+  return g;
+}
+
+function createProcessingMachine(){
+  const g = new THREE.Group();
+  const b = new THREE.MeshStandardMaterial({color:0x7f8c8d});
+  const f = new THREE.MeshStandardMaterial({color:0x3498db});
+  const m = new THREE.Mesh(new THREE.BoxGeometry(5,3,4),b);
+  m.position.y=1.5;
+  g.add(m);
+  const a = new THREE.Mesh(new THREE.BoxGeometry(1,4,1),f);
+  a.position.set(0,3,0);
+  g.add(a);
+  animatedParts.push({ mesh: a, type: 'rotate', machine: g });
+  return g;
+}
+
+function createInspectionMachine(){
+  const g=new THREE.Group();
+  const b=new THREE.MeshStandardMaterial({color:0xbdc3c7});
+  const f=new THREE.MeshStandardMaterial({color:0x2ecc71});
+  const m=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),b);
+  m.position.y=2;
+  g.add(m);
+  const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);
+  a.position.set(-2.5,3.5,0);
+  g.add(a);
+  const c=new THREE.Mesh(new THREE.BoxGeometry(5,.5,.5),f);
+  c.position.set(0,5,0);
+  g.add(c);
+  animatedParts.push({ mesh: c, type: 'slide', initialX: c.position.x, machine: g });
+  return g;
+}
+function createAssemblyMachine(){
+  const g=new THREE.Group();
+  const b=new THREE.MeshStandardMaterial({color:0x95a5a6});
+  const f=new THREE.MeshStandardMaterial({color:0xf39c12});
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1,32),b);
+  m.position.y=.5;
+  g.add(m);
+  const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);
+  a.position.y=2.5;
+  g.add(a);
+  const c=new THREE.Mesh(new THREE.BoxGeometry(2,.5,.5),f);
+  c.position.set(1,4,0);
+  g.add(c);
+  animatedParts.push({ mesh: a, type: 'press', initialY: a.position.y, machine: g });
+  return g;
+}
+function createPackagingMachine(){
+  const g=new THREE.Group();
+  const b=new THREE.MeshStandardMaterial({color:0x34495e});
+  const f=new THREE.MeshStandardMaterial({color:0x8e44ad});
+  const m=new THREE.Mesh(new THREE.BoxGeometry(10,.5,3),b);
+  m.position.y=1;
+  g.add(m);
+  const a=new THREE.Mesh(new THREE.BoxGeometry(3,4,4),f);
+  a.position.y=3;
+  g.add(a);
+  animatedParts.push({ mesh: a, type: 'press', initialY: a.position.y, machine: g });
+  return g;
+}
 
 </script>
 

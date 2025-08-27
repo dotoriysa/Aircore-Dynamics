@@ -18,6 +18,7 @@
         <ThreeViewer
           ref="viewerRef"
           :machine-info="processMachineInfo"
+          :machine-statuses="allMachineStatuses"
           @object-selected="updateInfoPanel"
         />
         <div class="machine-info-panel" :class="{ hidden: !selectedMachine }">
@@ -162,10 +163,14 @@ import ThreeViewer from '../ThreeViewer.vue';
 
 // --- State ---
 const selectedMachine = ref(null);
-const selectedMachineRealtimeData = ref(null); // ✨ 실시간 데이터 상태 추가
+const selectedMachineRealtimeData = ref(null); 
 const viewerRef = ref(null);
 const isAnimationRunning = ref(true);
 let apiInterval;
+let statusInterval; // ✨ 상태 시뮬레이션 인터벌 추가
+
+// ✨ 모든 기계 상태를 위한 반응형 객체 추가
+const allMachineStatuses = ref({});
 
 // --- API Data ---
 const apiData = reactive({
@@ -210,21 +215,29 @@ const processMachineInfo = [
     {PM_ID: 'PM008', Process_Name: '포장', Machine_Name: '포장기', Standard_Cycle_Time: 600, Description: '자동 포장 및 밀봉 장비'}
 ];
 
+// ✨ 모든 기계 상태를 주기적으로 업데이트하는 함수 추가
+function updateAllMachineStatuses() {
+  const statuses = ['running', 'idle', 'stopped'];
+  const newStatuses = {};
+  processMachineInfo.forEach(machine => {
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    newStatuses[machine.PM_ID] = { status: randomStatus };
+  });
+  allMachineStatuses.value = newStatuses;
+}
+
 // --- Event Handlers ---
-// ✨ 수정된 이벤트 핸들러
 async function updateInfoPanel(data) {
   selectedMachine.value = data;
-  selectedMachineRealtimeData.value = null; // 데이터 초기화
+  selectedMachineRealtimeData.value = null;
 
   if (data) {
     try {
-      // 실제로는 백엔드 API를 호출해야 합니다.
       const response = await fetch(`/api/machine/status/${data.PM_ID}`);
       if (!response.ok) throw new Error('Machine data fetch failed');
       selectedMachineRealtimeData.value = await response.json();
     } catch (error) {
       console.error("Failed to fetch machine status:", error);
-      // API가 없으므로 임시 목(Mock) 데이터로 대체합니다.
       setTimeout(() => {
         selectedMachineRealtimeData.value = {
           hourly_production: Math.floor(Math.random() * 20 + 30),
@@ -232,7 +245,7 @@ async function updateInfoPanel(data) {
           power_consumption: (Math.random() * 10 + 50).toFixed(1),
           defect_rate: (Math.random() * 2).toFixed(1)
         };
-      }, 500); // 0.5초 딜레이
+      }, 500);
     }
   }
 }
@@ -247,8 +260,15 @@ function zoomOut() { viewerRef.value?.moveCamera('zoom-out'); }
 onMounted(() => {
   fetchData();
   apiInterval = setInterval(fetchData, 5000);
+  
+  // ✨ 상태 시뮬레이션 시작
+  updateAllMachineStatuses();
+  statusInterval = setInterval(updateAllMachineStatuses, 3000);
 });
-onUnmounted(() => { clearInterval(apiInterval); });
+onUnmounted(() => { 
+  clearInterval(apiInterval);
+  clearInterval(statusInterval); // ✨ 인터벌 정리
+});
 </script>
 
 <style scoped>
@@ -259,22 +279,10 @@ onUnmounted(() => { clearInterval(apiInterval); });
 .status-indicator{width:12px;height:12px;border-radius:50%;animation:pulse 2s infinite}.status-good{background-color:#27ae60}.status-warning{background-color:#f39c12}.status-danger{background-color:#e74c3c}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(39,174,96,.4)}70%{box-shadow:0 0 0 10px transparent}to{box-shadow:0 0 0 0 transparent}}.equipment-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;margin-top:1rem}.equipment-item{text-align:center;padding:1rem;background:rgba(0,0,0,.2);border-radius:8px;transition:transform .3s ease;cursor:pointer}.equipment-item:hover{transform:scale(1.05)}.equipment-icon{font-size:2rem;margin-bottom:.5rem}.alert-box{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;padding:1rem;border-radius:8px;margin:.5rem 0;display:flex;align-items:center;gap:.5rem;animation:alertPulse 2s infinite}@keyframes alertPulse{0%,to{opacity:1}50%{opacity:.8}}.production-chart{height:150px;background:rgba(0,0,0,.2);border-radius:8px;position:relative;overflow:hidden;margin:1rem 0;display:flex;align-items:flex-end;justify-content:space-around;padding:1rem}.chart-bar{background:linear-gradient(0deg,#0097a7,#4dd0e1);border-radius:4px 4px 0 0;width:30px;display:flex;align-items:flex-end;justify-content:center;color:#fff;font-size:.7rem;font-weight:700;padding-bottom:.25rem;transition:height 1s ease}
 .wide-card { grid-column: span 2; }
 .line-selector{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}.line-btn{padding:.5rem 1rem;background:rgba(0,0,0,.2);border:2px solid transparent;border-radius:20px;cursor:pointer;transition:all .3s ease;color:#e0e0e0}.line-btn.active{background:#00bcd4;color:#fff;border-color:#0097a7}
-
-/* ✨ 정보 패널 스타일 추가 */
 .info-section { padding: 0.5rem 0; }
 .info-section:first-child { padding-top: 0; }
-.info-section.realtime-data { 
-  border-top: 1px solid rgba(255, 255, 255, 0.1); 
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-}
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
-}
+.info-section.realtime-data { border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 0.5rem; padding-top: 1rem; }
+.info-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 0.5rem; }
 .info-item span:first-child { color: #bdc3c7; }
 .info-item .metric-value { font-size: 1rem; color: #4dd0e1; font-weight: 600; }
 .info-item .defect-rate { color: #e74c3c; }

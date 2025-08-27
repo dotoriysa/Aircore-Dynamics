@@ -41,6 +41,7 @@
             ref="viewerRef"
             :machine-info="processMachineInfo"
             :highlighted-process="highlightedProcessName"
+            :machine-statuses="allMachineStatuses"
             @object-selected="updateSelectedMachine"
           />
           <div class="machine-info-panel" :class="{ hidden: !selectedMachine }">
@@ -75,7 +76,9 @@ import ThreeViewer from '../ThreeViewer.vue';
 const selectedLine = ref('casting');
 const viewerRef = ref(null);
 const selectedMachine = ref(null);
-const selectedMachineRealtimeData = ref(null); // ✨ 실시간 데이터 상태 추가
+const selectedMachineRealtimeData = ref(null);
+const allMachineStatuses = ref({}); // ✨ 모든 기계 상태
+let statusInterval; // ✨ 상태 시뮬레이션 인터벌
 
 const lineData = reactive({
   casting: { title: '주조 라인', prod: { title: '주조 라인 - 생산 현황', status: 'status-good', metrics: [] }, equip: { title: '설비별 상태', status: 'status-good', metrics: [] } },
@@ -100,17 +103,25 @@ const processMachineInfo = [
 const shouldShowEquipCard = computed(() => {
   return selectedLine.value === 'casting' || selectedLine.value === 'machining';
 });
-
 const lineApiNames = {
     casting: '주조', machining: '가공', inspection: '검사', assembly: '조립', packaging: '포장'
 };
-
 const highlightedProcessName = computed(() => lineApiNames[selectedLine.value]);
 
-// ✨ 수정된 이벤트 핸들러
+// ✨ 모든 기계 상태를 주기적으로 업데이트하는 함수
+function updateAllMachineStatuses() {
+  const statuses = ['running', 'idle', 'stopped'];
+  const newStatuses = {};
+  processMachineInfo.forEach(machine => {
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    newStatuses[machine.PM_ID] = { status: randomStatus };
+  });
+  allMachineStatuses.value = newStatuses;
+}
+
 async function updateSelectedMachine(data) {
   selectedMachine.value = data;
-  selectedMachineRealtimeData.value = null; // 데이터 초기화
+  selectedMachineRealtimeData.value = null;
 
   if (data) {
     try {
@@ -119,7 +130,6 @@ async function updateSelectedMachine(data) {
       selectedMachineRealtimeData.value = await response.json();
     } catch (error) {
       console.error("Failed to fetch machine status:", error);
-      // API가 없으므로 임시 목(Mock) 데이터로 대체합니다.
       setTimeout(() => {
         if (selectedMachine.value && selectedMachine.value.PM_ID === data.PM_ID) {
           selectedMachineRealtimeData.value = {
@@ -173,30 +183,26 @@ onMounted(() => {
       viewerRef.value?.handleResize();
   });
   apiInterval = setInterval(() => fetchData(selectedLine.value), 5000);
+  
+  // ✨ 상태 시뮬레이션 시작
+  updateAllMachineStatuses();
+  statusInterval = setInterval(updateAllMachineStatuses, 3000);
 });
 
-onUnmounted(() => { clearInterval(apiInterval); });
+onUnmounted(() => { 
+  clearInterval(apiInterval);
+  clearInterval(statusInterval); // ✨ 인터벌 정리
+});
 </script>
 
 <style scoped>
 .factory-container{min-height:450px;display:flex;flex-direction:column}.viewer-wrapper{flex-grow:1;position:relative;overflow:hidden;margin-top:.5rem}
 .machine-info-panel{position:absolute;bottom:1rem;left:1rem;background:rgba(0,0,0,.85);backdrop-filter:blur(5px);color:#fff;padding:1rem;border-radius:8px;font-size:.9rem;width:280px;border:1px solid rgba(77,208,225,.2);transition:opacity .3s ease}.machine-info-panel.hidden{opacity:0;pointer-events:none}
 @media (max-width:1200px){.factory-container{grid-column:span 1}}
-/* ✨ 정보 패널 스타일 추가 */
 .info-section { padding: 0.5rem 0; }
 .info-section:first-child { padding-top: 0; }
-.info-section.realtime-data { 
-  border-top: 1px solid rgba(255, 255, 255, 0.1); 
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-}
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
-}
+.info-section.realtime-data { border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 0.5rem; padding-top: 1rem; }
+.info-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 0.5rem; }
 .info-item span:first-child { color: #bdc3c7; }
 .info-item .metric-value { font-size: 1rem; color: #4dd0e1; font-weight: 600; }
 .info-item .defect-rate { color: #e74c3c; }

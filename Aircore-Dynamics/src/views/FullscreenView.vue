@@ -3,6 +3,7 @@
     <ThreeViewer
       ref="viewerRef"
       :machine-info="processMachineInfo"
+      :machine-statuses="allMachineStatuses"
       @object-selected="updateSelectedEquipment"
     />
 
@@ -87,7 +88,9 @@ import ThreeViewer from '../components/ThreeViewer.vue';
 const viewerRef = ref(null);
 const isAnimationRunning = ref(true);
 const selectedEquipment = ref(null);
-const selectedMachineRealtimeData = ref(null); // ✨ 실시간 데이터 상태 추가
+const selectedMachineRealtimeData = ref(null);
+const allMachineStatuses = ref({}); // ✨ 모든 기계 상태
+let statusInterval; // ✨ 상태 시뮬레이션 인터벌
 
 const processMachineInfo = [
     {PM_ID: 'PM001', Process_Name: '주조', Machine_Name: '주조기1', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 1호기'},
@@ -109,10 +112,20 @@ function handleToggleAnimation() {
   isAnimationRunning.value = running;
 }
 
-// ✨ 수정된 이벤트 핸들러
+// ✨ 모든 기계 상태를 주기적으로 업데이트하는 함수
+function updateAllMachineStatuses() {
+  const statuses = ['running', 'idle', 'stopped'];
+  const newStatuses = {};
+  processMachineInfo.forEach(machine => {
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    newStatuses[machine.PM_ID] = { status: randomStatus };
+  });
+  allMachineStatuses.value = newStatuses;
+}
+
 async function updateSelectedEquipment(data) {
   selectedEquipment.value = data;
-  selectedMachineRealtimeData.value = null; // 데이터 초기화
+  selectedMachineRealtimeData.value = null;
 
   if (data) {
     try {
@@ -121,7 +134,6 @@ async function updateSelectedEquipment(data) {
       selectedMachineRealtimeData.value = await response.json();
     } catch (error) {
       console.error("Failed to fetch machine status:", error);
-      // API가 없으므로 임시 목(Mock) 데이터로 대체
       setTimeout(() => {
         if (selectedEquipment.value && selectedEquipment.value.PM_ID === data.PM_ID) {
           selectedMachineRealtimeData.value = {
@@ -154,24 +166,19 @@ const handleKeyDown = (event) => {
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown);
+  // ✨ 상태 시뮬레이션 시작
+  updateAllMachineStatuses();
+  statusInterval = setInterval(updateAllMachineStatuses, 3000);
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown);
+  clearInterval(statusInterval); // ✨ 인터벌 정리
 });
 </script>
 
 <style scoped>
-.fullscreen-wrapper {
-  width: 100vw;
-  height: 100vh;
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-}
-
-/* --- UI 스타일 --- */
+.fullscreen-wrapper { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; overflow: hidden; }
 .controls{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:10px;z-index:100}
 .control-btn{padding:10px 15px;background:rgba(52,73,94,.8);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;backdrop-filter:blur(10px);transition:all .3s ease;text-align:left}
 .control-btn:hover{background:rgba(52,73,94,1);transform:translateY(-2px)}
@@ -183,19 +190,9 @@ onUnmounted(() => {
 .legend-item{display:flex;align-items:center;margin:5px 0}
 .legend-color{width:15px;height:15px;border-radius:3px;margin-right:8px}
 .help-panel{position:absolute;bottom:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:15px;border-radius:12px;font-size:12px;backdrop-filter:blur(10px);max-width:200px;z-index:100}
-
-/* ✨ 추가/수정된 스타일 */
-.selected-equipment-section {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 2px solid rgba(52, 152, 219, 0.5);
-}
+.selected-equipment-section { margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(52, 152, 219, 0.5); }
 .selected-equipment-details { margin-top: 10px; }
-.realtime-data-section {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid hsla(0,0%,100%,.1);
-}
+.realtime-data-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid hsla(0,0%,100%,.1); }
 .metric-value { font-size: 1rem; color: #4dd0e1; font-weight: 600; }
 .defect-rate { color: #e74c3c; }
 .loading-text { font-size: 0.85rem; color: #f39c12; text-align: center; padding: 1rem 0; }
