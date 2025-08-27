@@ -21,7 +21,8 @@
           <span class="metric-value">{{ metric.value }}</span>
         </div>
       </div>
-      <div class="card">
+
+      <div class="card" v-if="shouldShowEquipCard">
         <div class="card-header">
           <div class="card-title">{{ currentLineData.equip.title }}</div>
           <div :class="['status-indicator', currentLineData.equip.status]"></div>
@@ -31,84 +32,82 @@
           <span class="metric-value">{{ metric.value }}</span>
         </div>
       </div>
+      
+      <div 
+        :class="['card', 'factory-container', { 'wide-card': !shouldShowEquipCard }]"
+      >
+        <div class="viewer-wrapper">
+          <ThreeViewer
+            ref="viewerRef"
+            :machine-info="processMachineInfo"
+            :highlighted-process="highlightedProcessName"
+            @object-selected="updateSelectedMachine"
+          />
+          <div class="machine-info-panel" :class="{ hidden: !selectedMachine }">
+            <div v-if="selectedMachine">
+              <strong>ID:</strong> {{ selectedMachine.PM_ID }}<br>
+              <strong>이름:</strong> {{ selectedMachine.Machine_Name }}<br>
+              <strong>공정:</strong> {{ selectedMachine.Process_Name }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import ThreeViewer from '../ThreeViewer.vue';
 
 const selectedLine = ref('casting');
+const viewerRef = ref(null);
+const selectedMachine = ref(null);
+
 const lineData = reactive({
   casting: {
     title: '주조 라인',
-    prod: { 
-      title: '주조 라인 - 생산 현황', 
-      status: 'status-good', 
-      metrics: [] // API 데이터로 채워질 빈 배열
-    },
-    equip: { 
-      title: '설비별 상태', 
-      status: 'status-good', 
-      metrics: [] // API 데이터로 채워질 빈 배열
-    }
+    prod: { title: '주조 라인 - 생산 현황', status: 'status-good', metrics: [] },
+    equip: { title: '설비별 상태', status: 'status-good', metrics: [] }
   },
   machining: {
     title: '가공 라인',
-    prod: { 
-      title: '가공 라인 - 생산 현황', 
-      status: 'status-good', 
-      metrics: []
-    },
-    equip: { 
-      title: '설비별 상태', 
-      status: 'status-good', 
-      metrics: []
-    }
+    prod: { title: '가공 라인 - 생산 현황', status: 'status-good', metrics: [] },
+    equip: { title: '설비별 상태', status: 'status-good', metrics: [] }
   },
   inspection: {
     title: '검사 라인',
-    prod: { 
-      title: '검사 라인 - 생산 현황', 
-      status: 'status-warning', 
-      metrics: []
-    },
-    equip: { 
-      title: '설비별 상태', 
-      status: 'status-warning', 
-      metrics: []
-    }
+    prod: { title: '검사 라인 - 생산 현황', status: 'status-warning', metrics: [] },
+    equip: { title: '설비별 상태', status: 'status-warning', metrics: [] }
   },
   assembly: {
     title: '조립 라인',
-    prod: { 
-      title: '조립 라인 - 생산 현황', 
-      status: 'status-good', 
-      metrics: []
-    },
-    equip: { 
-      title: '설비별 상태', 
-      status: 'status-good', 
-      metrics: []
-    }
+    prod: { title: '조립 라인 - 생산 현황', status: 'status-good', metrics: [] },
+    equip: { title: '설비별 상태', status: 'status-good', metrics: [] }
   },
   packaging: {
     title: '포장/출하',
-    prod: { 
-      title: '포장/출하 라인 - 생산 현황', 
-      status: 'status-good', 
-      metrics: []
-    },
-    equip: { 
-      title: '설비별 상태', 
-      status: 'status-good', 
-      metrics: []
-    }
+    prod: { title: '포장/출하 라인 - 생산 현황', status: 'status-good', metrics: [] },
+    equip: { title: '설비별 상태', status: 'status-good', metrics: [] }
   }
 });
 const currentLineData = computed(() => lineData[selectedLine.value]);
 
-// 라인 키를 API 엔드포인트의 한국어 이름으로 변환하는 맵
+const processMachineInfo = [
+    {PM_ID: 'PM001', Process_Name: '주조', Machine_Name: '주조기1', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 1호기'},
+    {PM_ID: 'PM002', Process_Name: '주조', Machine_Name: '주조기2', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 2호기'},
+    {PM_ID: 'PM003', Process_Name: '주조', Machine_Name: '주조기3', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 3호기'},
+    {PM_ID: 'PM004', Process_Name: '가공', Machine_Name: '가공기1', Standard_Cycle_Time: 1800, Description: '정밀 가공 및 성형 장비 1호기'},
+    {PM_ID: 'PM005', Process_Name: '가공', Machine_Name: '가공기2', Standard_Cycle_Time: 1800, Description: '정밀 가공 및 성형 장비 2호기'},
+    {PM_ID: 'PM006', Process_Name: '검사', Machine_Name: '검사장비', Standard_Cycle_Time: 900, Description: '품질 검사 및 측정 장비'},
+    {PM_ID: 'PM007', Process_Name: '조립', Machine_Name: '조립기', Standard_Cycle_Time: 1200, Description: '부품 조립 및 결합 장비'},
+    {PM_ID: 'PM008', Process_Name: '포장', Machine_Name: '포장기', Standard_Cycle_Time: 600, Description: '자동 포장 및 밀봉 장비'}
+];
+
+const shouldShowEquipCard = computed(() => {
+  return selectedLine.value === 'casting' || selectedLine.value === 'machining';
+});
+
 const lineApiNames = {
     casting: '주조',
     machining: '가공',
@@ -117,23 +116,24 @@ const lineApiNames = {
     packaging: '포장'
 };
 
-// API로부터 데이터를 가져오는 함수
+const highlightedProcessName = computed(() => lineApiNames[selectedLine.value]);
+
+function updateSelectedMachine(data) {
+  selectedMachine.value = data;
+}
+
 async function fetchData(lineKey) {
   const apiName = lineApiNames[lineKey];
   if (!apiName) {
       console.error(`Invalid line key: ${lineKey}`);
       return;
   }
-
   try {
     const response = await fetch(`/api/process_dashboard/${apiName}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log(`API Data for ${apiName} received:`, data);
-
-    // API 응답 데이터를 템플릿 형식에 맞게 변환
     const prodMetrics = [
         { label: '시간당 생산량', value: `${data.daily_total_production}개` },
         { label: '가동률', value: `${(data.total_operation_rate || 0).toFixed(1)}%` },
@@ -141,8 +141,6 @@ async function fetchData(lineKey) {
         { label: '전력량', value: `${data.total_power_consumption || 0} kWh` },
         { label: '불량률', value: `${(data.defect_rate || 0).toFixed(1)}%` }
     ];
-
-    // 설비별 상태는 예시 데이터에 없으므로 가상 값을 사용
     let equipMetrics = [];
     if (lineKey === 'casting') {
         equipMetrics = [
@@ -156,27 +154,33 @@ async function fetchData(lineKey) {
             { label: '절삭유량', value: '25 L/min' }
         ];
     }
-    
-    // 변환된 데이터를 Vue 반응형 상태에 할당
     lineData[lineKey].prod.metrics = prodMetrics;
     lineData[lineKey].prod.status = (data.defect_rate > 5) ? 'status-warning' : 'status-good';
     lineData[lineKey].equip.metrics = equipMetrics;
-    // equip.status는 prod.status와 동일하게 설정 (예시)
     lineData[lineKey].equip.status = lineData[lineKey].prod.status;
-
   } catch (error) {
     console.error(`Failed to fetch data for ${apiName}:`, error);
   }
 }
 
-// selectedLine 값이 변경될 때마다 API 호출
 watch(selectedLine, (newLine) => {
   fetchData(newLine);
-}, { immediate: true }); // 컴포넌트 마운트 시 즉시 실행
+  selectedMachine.value = null; 
+  
+  const processName = lineApiNames[newLine];
+  viewerRef.value?.focusOnProcess(processName);
 
-// 5초마다 데이터 갱신
+  nextTick(() => {
+    viewerRef.value?.handleResize();
+  });
+}, { immediate: true }); 
+
 let apiInterval;
 onMounted(() => {
+  nextTick(() => {
+      viewerRef.value?.focusOnProcess(lineApiNames[selectedLine.value]);
+      viewerRef.value?.handleResize();
+  });
   apiInterval = setInterval(() => fetchData(selectedLine.value), 5000);
 });
 
@@ -184,3 +188,38 @@ onUnmounted(() => {
   clearInterval(apiInterval);
 });
 </script>
+
+<style scoped>
+.factory-container {
+  min-height: 450px;
+  display: flex;
+  flex-direction: column;
+}
+.viewer-wrapper {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+  margin-top: .5rem;
+}
+.machine-info-panel {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(0,0,0,.8);
+  color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: .9rem;
+  max-width: 300px;
+  transition: opacity .3s ease;
+}
+.machine-info-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+@media (max-width: 1200px) {
+  .factory-container {
+    grid-column: span 1;
+  }
+}
+</style>

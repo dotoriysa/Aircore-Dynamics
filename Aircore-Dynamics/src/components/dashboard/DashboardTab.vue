@@ -1,6 +1,19 @@
 <template>
   <div class="dashboard-grid">
     <div class="card factory-container">
+      <div class="card-header">
+        <div class="card-title">3D 공장 뷰어</div>
+        <div class="factory-controls">
+          <button class="factory-btn" @click="toggleViewerAnimation">
+            <span>{{ isAnimationRunning ? '⏸️ 일시정지' : '▶️ 시작' }}</span>
+          </button>
+          <button class="factory-btn" @click="zoomIn">➕</button>
+          <button class="factory-btn" @click="zoomOut">➖</button>
+          <router-link to="/view" target="_blank" class="factory-btn">
+            🖼️ 전체화면
+          </router-link>
+        </div>
+      </div>
       <div class="viewer-wrapper">
         <ThreeViewer
           ref="viewerRef"

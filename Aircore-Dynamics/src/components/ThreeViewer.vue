@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -12,6 +12,10 @@ const props = defineProps({
   machineInfo: {
     type: Array,
     required: true
+  },
+  highlightedProcess: {
+    type: String,
+    default: null
   }
 });
 const emit = defineEmits(['object-selected']);
@@ -29,6 +33,14 @@ let isAnimationRunning = true;
 let isTopView = false;
 let currentFocusIndex = 0;
 
+// ✨ 각 공정별 최적 카메라 위치 정의
+const processCameraPositions = {
+    '주조': { pos: new THREE.Vector3(-30, 15, 5), target: new THREE.Vector3(-20, 2, 5) },
+    '가공': { pos: new THREE.Vector3(-5, 15, 15), target: new THREE.Vector3(-5, 2, 0) },
+    '검사': { pos: new THREE.Vector3(10, 12, 15), target: new THREE.Vector3(10, 2, 0) },
+    '조립': { pos: new THREE.Vector3(20, 12, 15), target: new THREE.Vector3(20, 2, 0) },
+    '포장': { pos: new THREE.Vector3(20, 12, 25), target: new THREE.Vector3(20, 2, 10) }
+};
 
 // --- Lifecycle Hooks ---
 onMounted(() => {
@@ -73,9 +85,8 @@ function init() {
   controls.maxPolarAngle = Math.PI / 2;
   controls.target.set(0, 0, 0);
 
-  // ✨ 조명 강도를 높여 더 밝게 수정
-  scene.add(new THREE.AmbientLight(0x404040, 2.5)); // 주변광 강화
-  const dirLight = new THREE.DirectionalLight(0xffffff, 2.0); // 직사광 강화
+  scene.add(new THREE.AmbientLight(0x404040, 2.5));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
   dirLight.position.set(10, 20, 5);
   dirLight.castShadow = true;
   scene.add(dirLight);
@@ -104,6 +115,60 @@ function animate() {
   if (renderer) renderer.render(scene, camera);
 }
 
+// Prop 변경을 감지하여 설비 가시성을 업데이트
+watch(() => props.highlightedProcess, (newProcess) => {
+  updateMachineVisibility(newProcess);
+});
+
+// ✨ 수정된 부분: 설비 가시성 업데이트 함수
+function updateMachineVisibility(processName) {
+    if (!factoryObjects || factoryObjects.children.length === 0) return;
+
+    factoryObjects.children.forEach(machine => {
+        const isTarget = machine.userData.Process_Name === processName;
+        machine.traverse(child => {
+            if (child.isMesh) {
+                // 항상 투명도를 활성화하고 opacity 값만 조절
+                child.material.transparent = true;
+                if (processName === null) {
+                    child.material.opacity = 1.0;
+                } else {
+                    child.material.opacity = isTarget ? 1.0 : 0.15;
+                }
+            }
+        });
+    });
+}
+
+// ✨ 추가된 부분: 특정 공정에 카메라 포커스를 맞추는 함수
+function focusOnProcess(processName) {
+    const view = processCameraPositions[processName];
+    if (view && camera && controls) {
+        // 부드러운 이동을 위해 tweening 로직을 간단하게 구현 (requestAnimationFrame 사용)
+        const startPos = camera.position.clone();
+        const startTarget = controls.target.clone();
+        let duration = 500; // 0.5초
+        let startTime = null;
+
+        function move(time) {
+            if (startTime === null) startTime = time;
+            const elapsed = time - startTime;
+            const t = Math.min(elapsed / duration, 1); // 0에서 1 사이의 진행률
+
+            camera.position.lerpVectors(startPos, view.pos, t);
+            controls.target.lerpVectors(startTarget, view.target, t);
+
+            if (t < 1) {
+                requestAnimationFrame(move);
+            }
+        }
+        requestAnimationFrame(move);
+
+    } else {
+        resetView();
+    }
+}
+
 
 // --- Public Methods (exposed to parent) ---
 function toggleAnimation() {
@@ -119,8 +184,9 @@ function toggleAnimation() {
 function resetView() {
   isTopView = false;
   controls.autoRotate = false;
-  camera.position.set(0, 15, 30);
-  controls.target.set(0, 0, 0);
+  // 리셋 시 기본 뷰로 이동
+  focusOnProcess(null);
+  updateMachineVisibility(props.highlightedProcess);
 }
 
 function toggleTopView() {
@@ -136,14 +202,23 @@ function toggleTopView() {
 
 function focusNextEquipment() {
   if (factoryObjects.children.length === 0) return;
-  const equipment = factoryObjects.children[currentFocusIndex];
+
+  const relevantObjects = props.highlightedProcess
+    ? factoryObjects.children.filter(m => m.userData.Process_Name === props.highlightedProcess)
+    : factoryObjects.children;
+
+  if (relevantObjects.length === 0) return;
+  
+  currentFocusIndex = (currentFocusIndex + 1) % relevantObjects.length;
+  const equipment = relevantObjects[currentFocusIndex];
+  
   const pos = new THREE.Vector3();
   equipment.getWorldPosition(pos);
   camera.position.set(pos.x + 8, pos.y + 8, pos.z + 8);
   controls.target.copy(pos);
   emit('object-selected', equipment.userData);
   highlightObject(equipment);
-  currentFocusIndex = (currentFocusIndex + 1) % factoryObjects.children.length;
+
   controls.autoRotate = false;
   isTopView = false;
 }
@@ -192,7 +267,9 @@ defineExpose({
   toggleTopView,
   focusNextEquipment,
   toggleAutoRotate,
-  moveCamera
+  moveCamera,
+  focusOnProcess,
+  handleResize 
 });
 
 
@@ -218,7 +295,10 @@ function onMouseClick(event) {
     while (object.parent && !object.userData.PM_ID) {
       object = object.parent;
     }
-    if (object.userData.PM_ID) {
+    
+    // opacity가 0.5 미만인 객체는 클릭 방지
+    const isVisible = object.children[0].material.opacity > 0.5;
+    if (object.userData.PM_ID && isVisible) {
       highlightObject(object);
       emit('object-selected', object.userData);
     }
@@ -247,7 +327,6 @@ function highlightObject(object) {
     }
 }
 
-// ✨ 라벨 생성 함수 추가
 function createLabel(text) {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -277,18 +356,18 @@ function createMachines() {
         if (machine) {
             machine.position.set(layout.x, 0, layout.z + layout.count * 8);
             machine.userData = data;
-
-            // ✨ 생성된 라벨을 머신 그룹에 추가
+            
             const label = createLabel(data.Machine_Name);
-            label.position.set(0, 5, 0); // 머신 위쪽에 위치하도록 설정
+            label.position.set(0, 5, 0);
             machine.add(label);
 
             factoryObjects.add(machine);
             layout.count++;
         }
     });
+    updateMachineVisibility(props.highlightedProcess);
 }
-// --- 재질 색상 원본과 동일하게 수정 ---
+// --- 재질 함수들(이하 동일) ---
 function createCastingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x5a6d7c}),f=new THREE.MeshStandardMaterial({color:0xe74c3c}),m=new THREE.Mesh(new THREE.BoxGeometry(6,4,6),b);m.position.y=2,g.add(m);const a=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,3,32),f);return a.position.y=5.5,g.add(a),g}
 function createProcessingMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0x7f8c8d}),f=new THREE.MeshStandardMaterial({color:0x3498db}),m=new THREE.Mesh(new THREE.BoxGeometry(5,3,4),b);m.position.y=1.5,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(1,4,1),f);return a.position.set(0,3,0),g.add(a),g}
 function createInspectionMachine(){const g=new THREE.Group(),b=new THREE.MeshStandardMaterial({color:0xbdc3c7}),f=new THREE.MeshStandardMaterial({color:0x2ecc71}),m=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),b);m.position.y=2,g.add(m);const a=new THREE.Mesh(new THREE.BoxGeometry(.5,3,.5),f);a.position.set(-2.5,3.5,0),g.add(a);const c=new THREE.Mesh(new THREE.BoxGeometry(5,.5,.5),f);return c.position.set(0,5,0),g.add(c),g}
