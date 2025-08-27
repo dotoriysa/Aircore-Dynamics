@@ -70,13 +70,15 @@
 
     <div class="help-panel">
         <div style="font-weight: bold; margin-bottom: 8px; color: #3498db;">💡 조작법</div>
-        <div>• 마우스: 장비 클릭/회전</div>
-        <div>• WASD: 카메라 이동</div>
-        <div>• QE: 상하 이동</div>
-        <div>• R: 뷰 리셋</div>
-        <div>• T: 탑뷰 전환</div>
-        <div>• F: 장비 포커스</div>
-        <div>• 스페이스: 애니메이션</div>
+        <div>• <strong>카메라 회전:</strong> 좌클릭 + 드래그</div>
+        <div>• <strong>카메라 이동:</strong> 우클릭 + 드래그</div>
+        <div>• <strong>확대/축소:</strong> 마우스 휠 스크롤</div>
+        <div>• <strong>전후좌우 이동:</strong> WASD</div>
+        <div>• <strong>상하 이동:</strong> Q/E</div>
+        <div>• <strong>뷰 리셋:</strong> R</div>
+        <div>• <strong>탑뷰 전환:</strong> T</div>
+        <div>• <strong>장비 포커스:</strong> F</div>
+        <div>• <strong>애니메이션:</strong> 스페이스</div>
     </div>
   </div>
 </template>
@@ -89,8 +91,8 @@ const viewerRef = ref(null);
 const isAnimationRunning = ref(true);
 const selectedEquipment = ref(null);
 const selectedMachineRealtimeData = ref(null);
-const allMachineStatuses = ref({}); // ✨ 모든 기계 상태
-let statusInterval; // ✨ 상태 시뮬레이션 인터벌
+const allMachineStatuses = ref({});
+let statusInterval;
 
 const processMachineInfo = [
     {PM_ID: 'PM001', Process_Name: '주조', Machine_Name: '주조기1', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 1호기'},
@@ -112,7 +114,6 @@ function handleToggleAnimation() {
   isAnimationRunning.value = running;
 }
 
-// ✨ 모든 기계 상태를 주기적으로 업데이트하는 함수
 function updateAllMachineStatuses() {
   const statuses = ['running', 'idle', 'stopped'];
   const newStatuses = {};
@@ -166,23 +167,35 @@ const handleKeyDown = (event) => {
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown);
-  // ✨ 상태 시뮬레이션 시작
   updateAllMachineStatuses();
   statusInterval = setInterval(updateAllMachineStatuses, 3000);
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown);
-  clearInterval(statusInterval); // ✨ 인터벌 정리
+  clearInterval(statusInterval);
 });
 </script>
 
 <style scoped>
-.fullscreen-wrapper { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; overflow: hidden; }
+.fullscreen-wrapper {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+/* --- UI 스타일 --- */
 .controls{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:10px;z-index:100}
 .control-btn{padding:10px 15px;background:rgba(52,73,94,.8);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;backdrop-filter:blur(10px);transition:all .3s ease;text-align:left}
 .control-btn:hover{background:rgba(52,73,94,1);transform:translateY(-2px)}
-.status-panel{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:20px;border-radius:12px;font-size:14px;backdrop-filter:blur(10px);width:300px;z-index:100}
+
+/* ✨✨✨ --- 수정된 부분 (z-index 값 변경) --- ✨✨✨ */
+.status-panel{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:20px;border-radius:12px;font-size:14px;backdrop-filter:blur(10px);width:300px;z-index:101}
+/* ✨✨✨ --- 여기까지 --- ✨✨✨ */
+
 .status-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#3498db}
 .status-item{display:flex;justify-content:space-between;margin:8px 0;padding:5px 0;border-bottom:1px solid hsla(0,0%,100%,.1)}
 .equipment-legend{position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,.8);color:white;padding:15px;border-radius:12px;font-size:12px;backdrop-filter:blur(10px);z-index:100}
@@ -190,9 +203,19 @@ onUnmounted(() => {
 .legend-item{display:flex;align-items:center;margin:5px 0}
 .legend-color{width:15px;height:15px;border-radius:3px;margin-right:8px}
 .help-panel{position:absolute;bottom:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:15px;border-radius:12px;font-size:12px;backdrop-filter:blur(10px);max-width:200px;z-index:100}
-.selected-equipment-section { margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(52, 152, 219, 0.5); }
+
+/* 추가/수정된 스타일 */
+.selected-equipment-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid rgba(52, 152, 219, 0.5);
+}
 .selected-equipment-details { margin-top: 10px; }
-.realtime-data-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid hsla(0,0%,100%,.1); }
+.realtime-data-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid hsla(0,0%,100%,.1);
+}
 .metric-value { font-size: 1rem; color: #4dd0e1; font-weight: 600; }
 .defect-rate { color: #e74c3c; }
 .loading-text { font-size: 0.85rem; color: #f39c12; text-align: center; padding: 1rem 0; }

@@ -36,6 +36,18 @@
       <div 
         :class="['card', 'factory-container', { 'wide-card': !shouldShowEquipCard }]"
       >
+        <div class="card-header">
+          <div class="card-title">라인별 3D 뷰어</div>
+          <div class="factory-controls">
+            <button class="factory-btn" @click="toggleViewerAnimation">
+              <span>{{ isAnimationRunning ? '⏸️ 일시정지' : '▶️ 시작' }}</span>
+            </button>
+            <router-link to="/view" target="_blank" class="factory-btn">
+              🖼️ 전체화면
+            </router-link>
+          </div>
+        </div>
+        
         <div class="viewer-wrapper">
           <ThreeViewer
             ref="viewerRef"
@@ -44,6 +56,7 @@
             :machine-statuses="allMachineStatuses"
             @object-selected="updateSelectedMachine"
           />
+          
           <div class="machine-info-panel" :class="{ hidden: !selectedMachine }">
             <div v-if="selectedMachine">
                 <div class="info-section">
@@ -51,16 +64,13 @@
                 <div class="info-item"><strong>이름:</strong> <span>{{ selectedMachine.Machine_Name }}</span></div>
                 <div class="info-item"><strong>공정:</strong> <span>{{ selectedMachine.Process_Name }}</span></div>
               </div>
-
               <div v-if="selectedMachineRealtimeData" class="info-section realtime-data">
                 <div class="info-item"><span>시간당 생산량</span> <span class="metric-value">{{ selectedMachineRealtimeData.hourly_production }}개</span></div>
                 <div class="info-item"><span>가동률</span> <span class="metric-value">{{ selectedMachineRealtimeData.operation_rate }}%</span></div>
                 <div class="info-item"><span>전력량</span> <span class="metric-value">{{ selectedMachineRealtimeData.power_consumption }}kWh</span></div>
                 <div class="info-item"><span>불량률</span> <span class="metric-value defect-rate">{{ selectedMachineRealtimeData.defect_rate }}%</span></div>
               </div>
-              <div v-else class="loading-text">
-                실시간 데이터 로딩 중...
-              </div>
+              <div v-else class="loading-text">실시간 데이터 로딩 중...</div>
             </div>
           </div>
         </div>
@@ -71,14 +81,21 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { RouterLink } from 'vue-router';
 import ThreeViewer from '../ThreeViewer.vue';
 
 const selectedLine = ref('casting');
 const viewerRef = ref(null);
 const selectedMachine = ref(null);
 const selectedMachineRealtimeData = ref(null);
-const allMachineStatuses = ref({}); // ✨ 모든 기계 상태
-let statusInterval; // ✨ 상태 시뮬레이션 인터벌
+const allMachineStatuses = ref({});
+let statusInterval;
+
+const isAnimationRunning = ref(true);
+
+function toggleViewerAnimation() {
+  isAnimationRunning.value = viewerRef.value?.toggleAnimation();
+}
 
 const lineData = reactive({
   casting: { title: '주조 라인', prod: { title: '주조 라인 - 생산 현황', status: 'status-good', metrics: [] }, equip: { title: '설비별 상태', status: 'status-good', metrics: [] } },
@@ -108,7 +125,6 @@ const lineApiNames = {
 };
 const highlightedProcessName = computed(() => lineApiNames[selectedLine.value]);
 
-// ✨ 모든 기계 상태를 주기적으로 업데이트하는 함수
 function updateAllMachineStatuses() {
   const statuses = ['running', 'idle', 'stopped'];
   const newStatuses = {};
@@ -184,21 +200,53 @@ onMounted(() => {
   });
   apiInterval = setInterval(() => fetchData(selectedLine.value), 5000);
   
-  // ✨ 상태 시뮬레이션 시작
   updateAllMachineStatuses();
   statusInterval = setInterval(updateAllMachineStatuses, 3000);
 });
 
 onUnmounted(() => { 
   clearInterval(apiInterval);
-  clearInterval(statusInterval); // ✨ 인터벌 정리
+  clearInterval(statusInterval);
 });
 </script>
 
 <style scoped>
-.factory-container{min-height:450px;display:flex;flex-direction:column}.viewer-wrapper{flex-grow:1;position:relative;overflow:hidden;margin-top:.5rem}
-.machine-info-panel{position:absolute;bottom:1rem;left:1rem;background:rgba(0,0,0,.85);backdrop-filter:blur(5px);color:#fff;padding:1rem;border-radius:8px;font-size:.9rem;width:280px;border:1px solid rgba(77,208,225,.2);transition:opacity .3s ease}.machine-info-panel.hidden{opacity:0;pointer-events:none}
-@media (max-width:1200px){.factory-container{grid-column:span 1}}
+.factory-container {
+  min-height: 450px;
+  display: flex;
+  flex-direction: column;
+}
+.viewer-wrapper {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+  margin-top: .5rem;
+  border-radius: 8px;
+}
+.machine-info-panel {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(5px);
+  color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: .9rem;
+  width: 280px;
+  border: 1px solid rgba(77,208,225,.2);
+  transition: opacity .3s ease;
+  z-index: 100;
+}
+.machine-info-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+@media (max-width:1200px) {
+  .factory-container {
+    grid-column: span 1;
+  }
+}
 .info-section { padding: 0.5rem 0; }
 .info-section:first-child { padding-top: 0; }
 .info-section.realtime-data { border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 0.5rem; padding-top: 1rem; }

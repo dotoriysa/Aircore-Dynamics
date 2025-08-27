@@ -7,8 +7,6 @@
           <button class="factory-btn" @click="toggleViewerAnimation">
             <span>{{ isAnimationRunning ? '⏸️ 일시정지' : '▶️ 시작' }}</span>
           </button>
-          <button class="factory-btn" @click="zoomIn">➕</button>
-          <button class="factory-btn" @click="zoomOut">➖</button>
           <router-link to="/view" target="_blank" class="factory-btn">
             🖼️ 전체화면
           </router-link>
@@ -167,9 +165,8 @@ const selectedMachineRealtimeData = ref(null);
 const viewerRef = ref(null);
 const isAnimationRunning = ref(true);
 let apiInterval;
-let statusInterval; // ✨ 상태 시뮬레이션 인터벌 추가
+let statusInterval;
 
-// ✨ 모든 기계 상태를 위한 반응형 객체 추가
 const allMachineStatuses = ref({});
 
 // --- API Data ---
@@ -215,7 +212,6 @@ const processMachineInfo = [
     {PM_ID: 'PM008', Process_Name: '포장', Machine_Name: '포장기', Standard_Cycle_Time: 600, Description: '자동 포장 및 밀봉 장비'}
 ];
 
-// ✨ 모든 기계 상태를 주기적으로 업데이트하는 함수 추가
 function updateAllMachineStatuses() {
   const statuses = ['running', 'idle', 'stopped'];
   const newStatuses = {};
@@ -253,21 +249,18 @@ async function updateInfoPanel(data) {
 function toggleViewerAnimation() {
   isAnimationRunning.value = viewerRef.value?.toggleAnimation();
 }
-function zoomIn() { viewerRef.value?.moveCamera('zoom-in'); }
-function zoomOut() { viewerRef.value?.moveCamera('zoom-out'); }
 
 // --- Lifecycle ---
 onMounted(() => {
   fetchData();
   apiInterval = setInterval(fetchData, 5000);
   
-  // ✨ 상태 시뮬레이션 시작
   updateAllMachineStatuses();
   statusInterval = setInterval(updateAllMachineStatuses, 3000);
 });
 onUnmounted(() => { 
   clearInterval(apiInterval);
-  clearInterval(statusInterval); // ✨ 인터벌 정리
+  clearInterval(statusInterval);
 });
 </script>
 
