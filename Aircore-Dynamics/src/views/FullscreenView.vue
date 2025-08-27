@@ -34,16 +34,27 @@
         <span>정비 중:</span>
         <span style="color: #e74c3c;">0대</span>
       </div>
-      <div class="status-item" v-if="!selectedEquipment">
-        <span>선택된 장비:</span>
-        <span>없음</span>
-      </div>
-      <div v-if="selectedEquipment" class="selected-equipment-details">
-        <div class="status-item"><span>ID:</span> <span>{{ selectedEquipment.PM_ID }}</span></div>
-        <div class="status-item"><span>이름:</span> <span>{{ selectedEquipment.Machine_Name }}</span></div>
-        <div class="status-item"><span>공정:</span> <span>{{ selectedEquipment.Process_Name }}</span></div>
-        <div class="status-item"><span>사이클 타임:</span> <span>{{ selectedEquipment.Standard_Cycle_Time }}s</span></div>
-        <div class="status-item description"><span>설명:</span> <span>{{ selectedEquipment.Description }}</span></div>
+
+      <div class="selected-equipment-section">
+        <div class="status-item" v-if="!selectedEquipment">
+          <span>선택된 장비:</span>
+          <span>없음</span>
+        </div>
+        <div v-if="selectedEquipment" class="selected-equipment-details">
+          <div class="status-item"><span>ID:</span> <span>{{ selectedEquipment.PM_ID }}</span></div>
+          <div class="status-item"><span>이름:</span> <span>{{ selectedEquipment.Machine_Name }}</span></div>
+          <div class="status-item"><span>공정:</span> <span>{{ selectedEquipment.Process_Name }}</span></div>
+          
+          <div v-if="selectedMachineRealtimeData" class="realtime-data-section">
+            <div class="status-item"><span>시간당 생산량</span> <span class="metric-value">{{ selectedMachineRealtimeData.hourly_production }}개</span></div>
+            <div class="status-item"><span>가동률</span> <span class="metric-value">{{ selectedMachineRealtimeData.operation_rate }}%</span></div>
+            <div class="status-item"><span>전력량</span> <span class="metric-value">{{ selectedMachineRealtimeData.power_consumption }}kWh</span></div>
+            <div class="status-item"><span>불량률</span> <span class="metric-value defect-rate">{{ selectedMachineRealtimeData.defect_rate }}%</span></div>
+          </div>
+          <div v-else class="loading-text">
+            실시간 데이터 로딩 중...
+          </div>
+        </div>
       </div>
     </div>
 
@@ -75,9 +86,9 @@ import ThreeViewer from '../components/ThreeViewer.vue';
 
 const viewerRef = ref(null);
 const isAnimationRunning = ref(true);
-const selectedEquipment = ref(null); // 이름 대신 전체 객체를 저장
+const selectedEquipment = ref(null);
+const selectedMachineRealtimeData = ref(null); // ✨ 실시간 데이터 상태 추가
 
-// ✨ 상세 정보 추가
 const processMachineInfo = [
     {PM_ID: 'PM001', Process_Name: '주조', Machine_Name: '주조기1', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 1호기'},
     {PM_ID: 'PM002', Process_Name: '주조', Machine_Name: '주조기2', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 2호기'},
@@ -98,9 +109,31 @@ function handleToggleAnimation() {
   isAnimationRunning.value = running;
 }
 
-// ✨ 이벤트 핸들러 수정
-function updateSelectedEquipment(data) {
+// ✨ 수정된 이벤트 핸들러
+async function updateSelectedEquipment(data) {
   selectedEquipment.value = data;
+  selectedMachineRealtimeData.value = null; // 데이터 초기화
+
+  if (data) {
+    try {
+      const response = await fetch(`/api/machine/status/${data.PM_ID}`);
+      if (!response.ok) throw new Error('Machine data fetch failed');
+      selectedMachineRealtimeData.value = await response.json();
+    } catch (error) {
+      console.error("Failed to fetch machine status:", error);
+      // API가 없으므로 임시 목(Mock) 데이터로 대체
+      setTimeout(() => {
+        if (selectedEquipment.value && selectedEquipment.value.PM_ID === data.PM_ID) {
+          selectedMachineRealtimeData.value = {
+            hourly_production: Math.floor(Math.random() * 20 + 30),
+            operation_rate: (Math.random() * 5 + 95).toFixed(1),
+            power_consumption: (Math.random() * 10 + 50).toFixed(1),
+            defect_rate: (Math.random() * 2).toFixed(1)
+          };
+        }
+      }, 500);
+    }
+  }
 }
 
 const handleKeyDown = (event) => {
@@ -138,10 +171,32 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* --- view.html에서 가져온 UI 스타일 --- */
-.controls{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:10px;z-index:100}.control-btn{padding:10px 15px;background:rgba(52,73,94,.8);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;backdrop-filter:blur(10px);transition:all .3s ease;text-align:left}.control-btn:hover{background:rgba(52,73,94,1);transform:translateY(-2px)}.status-panel{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:20px;border-radius:12px;font-size:14px;backdrop-filter:blur(10px);min-width:250px;z-index:100}.status-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#3498db}.status-item{display:flex;justify-content:space-between;margin:8px 0;padding:5px 0;border-bottom:1px solid hsla(0,0%,100%,.1)}.equipment-legend{position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,.8);color:white;padding:15px;border-radius:12px;font-size:12px;backdrop-filter:blur(10px);z-index:100}.legend-title{font-weight:bold;margin-bottom:10px;color:#e74c3c}.legend-item{display:flex;align-items:center;margin:5px 0}.legend-color{width:15px;height:15px;border-radius:3px;margin-right:8px}.help-panel{position:absolute;bottom:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:15px;border-radius:12px;font-size:12px;backdrop-filter:blur(10px);max-width:200px;z-index:100}
-/* ✨ 추가된 스타일 */
+/* --- UI 스타일 --- */
+.controls{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:10px;z-index:100}
+.control-btn{padding:10px 15px;background:rgba(52,73,94,.8);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;backdrop-filter:blur(10px);transition:all .3s ease;text-align:left}
+.control-btn:hover{background:rgba(52,73,94,1);transform:translateY(-2px)}
+.status-panel{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:20px;border-radius:12px;font-size:14px;backdrop-filter:blur(10px);width:300px;z-index:100}
+.status-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#3498db}
+.status-item{display:flex;justify-content:space-between;margin:8px 0;padding:5px 0;border-bottom:1px solid hsla(0,0%,100%,.1)}
+.equipment-legend{position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,.8);color:white;padding:15px;border-radius:12px;font-size:12px;backdrop-filter:blur(10px);z-index:100}
+.legend-title{font-weight:bold;margin-bottom:10px;color:#e74c3c}
+.legend-item{display:flex;align-items:center;margin:5px 0}
+.legend-color{width:15px;height:15px;border-radius:3px;margin-right:8px}
+.help-panel{position:absolute;bottom:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:15px;border-radius:12px;font-size:12px;backdrop-filter:blur(10px);max-width:200px;z-index:100}
+
+/* ✨ 추가/수정된 스타일 */
+.selected-equipment-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid rgba(52, 152, 219, 0.5);
+}
 .selected-equipment-details { margin-top: 10px; }
-.description { flex-direction: column; align-items: flex-start; }
-.description span:last-child { margin-top: 5px; opacity: 0.8; }
+.realtime-data-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid hsla(0,0%,100%,.1);
+}
+.metric-value { font-size: 1rem; color: #4dd0e1; font-weight: 600; }
+.defect-rate { color: #e74c3c; }
+.loading-text { font-size: 0.85rem; color: #f39c12; text-align: center; padding: 1rem 0; }
 </style>
