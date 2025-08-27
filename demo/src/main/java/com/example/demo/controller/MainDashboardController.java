@@ -38,7 +38,7 @@ public class MainDashboardController {
         summary.put("total_operation_rate", String.format("%.2f", dashboardService.getOperationRate()));
         summary.put("operating_machines", dashboardService.getOperatingMachines());
         summary.put("daily_total_production", dashboardService.getDailyProduction());
-        summary.put("factory_temperature", dashboardService.getTemperature() + "°C");
+        summary.put("factory_temperature", String.format("%.2f", dashboardService.getTemperature()) + "°C");
         summary.put("factory_humidity", dashboardService.getHumidity() + "%");
         summary.put("total_power_consumption", dashboardService.getPowerConsumption());
         summary.put("defect_rate", String.format("%.2f", defectRate));

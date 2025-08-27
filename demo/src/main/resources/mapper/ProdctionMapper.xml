@@ -4,15 +4,21 @@
 
 <mapper namespace="com.example.demo.mapper.ProductionMapper">
 
-    <select id="selectDailyTotalProduction" resultType="double">
-        SELECT COALESCE(SUM(completed_quantity), 0)
-        FROM production_data WHERE pm_id = #{pmId} AND DATE(timestamp) = CURDATE()
-    </select>
-
-    <select id="selectNgCountByPmId" resultType="double">
-        SELECT COALESCE(SUM(completed_quantity), 0)
-        FROM production_data
-        WHERE pm_id = #{pmId} AND quality_grade = 'NG'
+    <select id="selectAllProductionRecords" resultType="com.example.demo.model.ProductionData">
+        <![CDATA[
+        SELECT
+            id,
+            timestamp,
+            pm_id,
+            completed_quantity,
+            quality_grade
+        FROM
+            production_data
+        WHERE
+            pm_id = #{pmId}
+        ORDER BY
+            timestamp ASC
+        ]]>
     </select>
 
 </mapper>
