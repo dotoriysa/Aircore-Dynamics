@@ -15,7 +15,8 @@
       <button class="control-btn" @click="viewerRef?.toggleTopView()">📐 탑 뷰</button>
       <button class="control-btn" @click="viewerRef?.focusNextEquipment()">🎯 장비 포커스</button>
       <button class="control-btn" @click="viewerRef?.toggleAutoRotate()">🔄 자동 회전</button>
-    </div>
+      <button class="control-btn" @click="exitFullscreen">🚪 나가기</button>
+      </div>
 
     <div class="status-panel">
       <div class="status-title">🏭 공장 현황</div>
@@ -114,6 +115,12 @@ function handleToggleAnimation() {
   isAnimationRunning.value = running;
 }
 
+// ✨✨✨ --- 추가된 부분 --- ✨✨✨
+function exitFullscreen() {
+  window.close();
+}
+// ✨✨✨ --- 여기까지 --- ✨✨✨
+
 function updateAllMachineStatuses() {
   const statuses = ['running', 'idle', 'stopped'];
   const newStatuses = {};
@@ -192,9 +199,7 @@ onUnmounted(() => {
 .control-btn{padding:10px 15px;background:rgba(52,73,94,.8);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;backdrop-filter:blur(10px);transition:all .3s ease;text-align:left}
 .control-btn:hover{background:rgba(52,73,94,1);transform:translateY(-2px)}
 
-/* ✨✨✨ --- 수정된 부분 (z-index 값 변경) --- ✨✨✨ */
 .status-panel{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:20px;border-radius:12px;font-size:14px;backdrop-filter:blur(10px);width:300px;z-index:101}
-/* ✨✨✨ --- 여기까지 --- ✨✨✨ */
 
 .status-title{font-size:16px;font-weight:bold;margin-bottom:15px;color:#3498db}
 .status-item{display:flex;justify-content:space-between;margin:8px 0;padding:5px 0;border-bottom:1px solid hsla(0,0%,100%,.1)}
@@ -204,7 +209,6 @@ onUnmounted(() => {
 .legend-color{width:15px;height:15px;border-radius:3px;margin-right:8px}
 .help-panel{position:absolute;bottom:20px;right:20px;background:rgba(0,0,0,.8);color:white;padding:15px;border-radius:12px;font-size:12px;backdrop-filter:blur(10px);max-width:200px;z-index:100}
 
-/* 추가/수정된 스타일 */
 .selected-equipment-section {
   margin-top: 15px;
   padding-top: 15px;
