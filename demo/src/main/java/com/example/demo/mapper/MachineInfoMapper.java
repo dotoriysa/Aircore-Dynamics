@@ -1,5 +1,6 @@
 package com.example.demo.mapper;
 
+import com.example.demo.model.ProcessMachineInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
@@ -8,15 +9,15 @@ import java.util.List;
 public interface MachineInfoMapper {
 
     /**
-     * 모든 장비의 pm_id 리스트를 조회
-     * @return pm_id 리스트
+     * 모든 장비 정보를 조회
+     * @return ProcessMachineInfo 객체 리스트
      */
-    List<String> getAllPmIds();
+    List<ProcessMachineInfo> getAllMachineInfos();
 
     /**
-     * 특정 공정 장비의 pm_id 리스트를 조회
+     * 특정 공정 장비의 정보를 조회
      * @param processName 공정 이름
-     * @return pm_id 리스트
+     * @return ProcessMachineInfo 객체 리스트
      */
-    List<String> getPmIdsByProcessName(@Param("processName") String processName);
+    List<ProcessMachineInfo> getMachineInfosByProcessName(@Param("processName") String processName);
 }

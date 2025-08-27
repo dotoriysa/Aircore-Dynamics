@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.mapper.*;
+import com.example.demo.model.ProcessMachineInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,18 +33,18 @@ public class ProcessDashboardService {
      * @return 가동률 (퍼센트)
      */
     public double getOperationRate(String processName) {
-        // 1. 특정 공정에 속한 장비 ID 목록을 조회
-        List<String> pmIds = machineInfoMapper.getPmIdsByProcessName(processName);
+        // 1. 특정 공정에 속한 장비 정보 목록을 조회
+        List<ProcessMachineInfo> machineInfos = machineInfoMapper.getMachineInfosByProcessName(processName);
 
-        if (pmIds.isEmpty()) {
+        if (machineInfos.isEmpty()) {
             return 0.0; // 해당 공정의 장비가 없으면 가동률은 0
         }
 
         double totalOperatingSeconds = 0.0;
 
         // 2. 각 장비별 실제 가동시간 합산
-        for (String pmId : pmIds) {
-            Double operatingSeconds = machineStatusMapper.selectGrandTotalOperatingSeconds(pmId);
+        for (ProcessMachineInfo machineInfo : machineInfos) {
+            Double operatingSeconds = machineStatusMapper.selectGrandTotalOperatingSeconds(machineInfo.getPmId());
             if (operatingSeconds != null) {
                 totalOperatingSeconds += operatingSeconds;
             }
@@ -61,7 +62,7 @@ public class ProcessDashboardService {
         long totalPossibleSeconds = Duration.between(startTime, currentTime).getSeconds();
 
         // 4. 모든 장비 수만큼 곱하여 전체 가동 가능한 시간 계산
-        long totalPossibleOperatingTime = totalPossibleSeconds * pmIds.size();
+        long totalPossibleOperatingTime = totalPossibleSeconds * machineInfos.size();
 
         // 5. 가동률 계산 (퍼센트)
         if (totalPossibleOperatingTime == 0) {
@@ -78,14 +79,14 @@ public class ProcessDashboardService {
      * @return 가동 중인 장비 수
      */
     public int getOperatingMachines(String processName) {
-        // 1. 특정 공정 장비 목록을 가져옴
-        List<String> pmIds = machineInfoMapper.getPmIdsByProcessName(processName);
+        // 1. 특정 공정 장비 정보 목록을 가져옴
+        List<ProcessMachineInfo> machineInfos = machineInfoMapper.getMachineInfosByProcessName(processName);
 
         int totalOperatingCount = 0;
 
         // 2. 각 장비별로 가동 상태 확인
-        for (String pmId : pmIds) {
-            Integer operatingCount = machineStatusMapper.selectOperatingMachinesCount(pmId);
+        for (ProcessMachineInfo machineInfo : machineInfos) {
+            Integer operatingCount = machineStatusMapper.selectOperatingMachinesCount(machineInfo.getPmId());
             if (operatingCount != null) {
                 totalOperatingCount += operatingCount;
             }
@@ -100,16 +101,16 @@ public class ProcessDashboardService {
      * @return 일일 총 생산량
      */
     public Double getDailyProduction(String processName) {
-        List<String> pmIds = machineInfoMapper.getPmIdsByProcessName(processName);
+        List<ProcessMachineInfo> machineInfos = machineInfoMapper.getMachineInfosByProcessName(processName);
 
-        if (pmIds.isEmpty()) {
+        if (machineInfos.isEmpty()) {
             return 0.0;
         }
 
         double totalProduction = 0.0;
 
-        for (String pmId : pmIds) {
-            Double dailyProduction = productionMapper.selectDailyTotalProduction(pmId);
+        for (ProcessMachineInfo machineInfo : machineInfos) {
+            Double dailyProduction = productionMapper.selectDailyTotalProduction(machineInfo.getPmId());
             if (dailyProduction != null) {
                 totalProduction += dailyProduction;
             }
@@ -123,16 +124,16 @@ public class ProcessDashboardService {
      * @return 전력량 (kWh)
      */
     public double getPowerConsumption(String processName) {
-        List<String> pmIds = machineInfoMapper.getPmIdsByProcessName(processName);
+        List<ProcessMachineInfo> machineInfos = machineInfoMapper.getMachineInfosByProcessName(processName);
 
-        if (pmIds.isEmpty()) {
+        if (machineInfos.isEmpty()) {
             return 0.0;
         }
 
         double totalPowerConsumption = 0.0;
 
-        for (String pmId : pmIds) {
-            Double powerConsumption = powerMapper.selectTotalPowerConsumptionByDateAndPmId(pmId);
+        for (ProcessMachineInfo machineInfo : machineInfos) {
+            Double powerConsumption = powerMapper.selectTotalPowerConsumptionByDateAndPmId(machineInfo.getPmId());
             if (powerConsumption != null) {
                 totalPowerConsumption += powerConsumption;
             }
@@ -146,16 +147,16 @@ public class ProcessDashboardService {
      * @return 일일 불량품 총 개수
      */
     public double getDailyNgCount(String processName) {
-        List<String> pmIds = machineInfoMapper.getPmIdsByProcessName(processName);
+        List<ProcessMachineInfo> machineInfos = machineInfoMapper.getMachineInfosByProcessName(processName);
 
-        if (pmIds.isEmpty()) {
+        if (machineInfos.isEmpty()) {
             return 0.0;
         }
 
         double totalNgCount = 0.0;
 
-        for (String pmId : pmIds) {
-            Double ngCount = productionMapper.selectNgCountByPmId(pmId);
+        for (ProcessMachineInfo machineInfo : machineInfos) {
+            Double ngCount = productionMapper.selectNgCountByPmId(machineInfo.getPmId());
             if (ngCount != null) {
                 totalNgCount += ngCount;
             }

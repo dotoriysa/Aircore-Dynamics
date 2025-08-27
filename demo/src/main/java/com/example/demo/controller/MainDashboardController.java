@@ -29,14 +29,20 @@ public class MainDashboardController {
     public ResponseEntity<Map<String, Object>> getMainDashboardSummary() {
         Map<String, Object> summary = new HashMap<>();
 
-        // 서비스로부터 각 데이터를 가져와 Map에 추가
-        summary.put("total_operation_rate", dashboardService.getOperationRate());
+        // 불량률을 먼저 가져와서 정상률을 계산합니다.
+        double defectRate = dashboardService.getDefectRate();
+        double normalRate = 100.0 - defectRate;
+
+        // 서비스로부터 각 데이터를 가져와 Map에 추가합니다.
+        // 가동률, 불량률, 정상률만 소수점 둘째 자리로 포맷팅합니다.
+        summary.put("total_operation_rate", String.format("%.2f", dashboardService.getOperationRate()));
         summary.put("operating_machines", dashboardService.getOperatingMachines());
         summary.put("daily_total_production", dashboardService.getDailyProduction());
         summary.put("factory_temperature", dashboardService.getTemperature() + "°C");
         summary.put("factory_humidity", dashboardService.getHumidity() + "%");
         summary.put("total_power_consumption", dashboardService.getPowerConsumption());
-        summary.put("defect_rate", dashboardService.getDefectRate());
+        summary.put("defect_rate", String.format("%.2f", defectRate));
+        summary.put("normal_rate", String.format("%.2f", normalRate));
 
         // 메시지 및 상태 정보는 그대로 유지
         summary.put("message", "메인 대시보드 데이터가 정상적으로 조회되었습니다.");

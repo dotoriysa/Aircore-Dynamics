@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.service.ProcessDashboardService;
+import com.example.demo.model.PowerData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
