@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ProductionMapper">
+
+    <select id="selectDailyTotalProduction" resultType="double">
+        SELECT COALESCE(SUM(completed_quantity), 0)
+        FROM production_data WHERE pm_id = #{pmId} AND DATE(timestamp) = CURDATE()
+    </select>
+
+    <select id="selectNgCountByPmId" resultType="double">
+        SELECT COALESCE(SUM(completed_quantity), 0)
+        FROM production_data
+        WHERE pm_id = #{pmId} AND quality_grade = 'NG'
+    </select>
+
+</mapper>
