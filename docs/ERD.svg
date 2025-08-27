@@ -1,0 +1,140 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 -->
+  <rect width="1200" height="800" fill="#f8f9fa"/>
+  
+  <!-- 제목 -->
+  <text x="600" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#2c3e50">제조업 데이터베이스 ERD</text>
+  
+  <!-- Process_Machine_Info 테이블 (중심 테이블) -->
+  <g>
+    <rect x="480" y="60" width="240" height="160" fill="#3498db" stroke="#2980b9" stroke-width="2" rx="8"/>
+    <rect x="480" y="60" width="240" height="30" fill="#2980b9" rx="8"/>
+    <text x="600" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">Process_Machine_Info</text>
+    <text x="490" y="105" font-family="Arial, sans-serif" font-size="11" fill="white">🔑 PM_ID (VARCHAR)</text>
+    <text x="490" y="125" font-family="Arial, sans-serif" font-size="11" fill="white">Process_Name (VARCHAR)</text>
+    <text x="490" y="145" font-family="Arial, sans-serif" font-size="11" fill="white">Machine_Name (VARCHAR)</text>
+    <text x="490" y="165" font-family="Arial, sans-serif" font-size="11" fill="white">Standard_Cycle_Time (INT)</text>
+    <text x="490" y="185" font-family="Arial, sans-serif" font-size="11" fill="white">Description (VARCHAR)</text>
+    <text x="490" y="205" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1">(고정 테이블)</text>
+  </g>
+
+  <!-- Environment_Data 테이블 -->
+  <g>
+    <rect x="50" y="60" width="200" height="120" fill="#e74c3c" stroke="#c0392b" stroke-width="2" rx="8"/>
+    <rect x="50" y="60" width="200" height="30" fill="#c0392b" rx="8"/>
+    <text x="150" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Environment_Data</text>
+    <text x="60" y="105" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
+    <text x="60" y="125" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
+    <text x="60" y="145" font-family="Arial, sans-serif" font-size="10" fill="white">temperature (FLOAT)</text>
+    <text x="60" y="165" font-family="Arial, sans-serif" font-size="10" fill="white">humidity (FLOAT)</text>
+    <text x="60" y="185" font-family="Arial, sans-serif" font-size="9" fill="#f8c9c1">(10분 간격)</text>
+  </g>
+
+  <!-- Production_Data 테이블 -->
+  <g>
+    <rect x="280" y="280" width="220" height="140" fill="#27ae60" stroke="#229954" stroke-width="2" rx="8"/>
+    <rect x="280" y="280" width="220" height="30" fill="#229954" rx="8"/>
+    <text x="390" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Production_Data</text>
+    <text x="290" y="325" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
+    <text x="290" y="345" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
+    <text x="290" y="365" font-family="Arial, sans-serif" font-size="10" fill="white">🔗 pm_id (VARCHAR, FK)</text>
+    <text x="290" y="385" font-family="Arial, sans-serif" font-size="10" fill="white">completed_quantity (INT)</text>
+    <text x="290" y="405" font-family="Arial, sans-serif" font-size="10" fill="white">quality_grade (VARCHAR)</text>
+    <text x="290" y="425" font-family="Arial, sans-serif" font-size="9" fill="#a9dfbf">(완료 시점 기준)</text>
+  </g>
+
+  <!-- Power_Data 테이블 -->
+  <g>
+    <rect x="700" y="280" width="200" height="120" fill="#f39c12" stroke="#e67e22" stroke-width="2" rx="8"/>
+    <rect x="700" y="280" width="200" height="30" fill="#e67e22" rx="8"/>
+    <text x="800" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Power_Data</text>
+    <text x="710" y="325" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
+    <text x="710" y="345" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
+    <text x="710" y="365" font-family="Arial, sans-serif" font-size="10" fill="white">🔗 pm_id (VARCHAR, FK)</text>
+    <text x="710" y="385" font-family="Arial, sans-serif" font-size="10" fill="white">power_consumption (FLOAT)</text>
+    <text x="710" y="405" font-family="Arial, sans-serif" font-size="9" fill="#f8dc7c">(1분 간격)</text>
+  </g>
+
+  <!-- Vibration_Data 테이블 -->
+  <g>
+    <rect x="280" y="480" width="220" height="140" fill="#9b59b6" stroke="#8e44ad" stroke-width="2" rx="8"/>
+    <rect x="280" y="480" width="220" height="30" fill="#8e44ad" rx="8"/>
+    <text x="390" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Vibration_Data</text>
+    <text x="290" y="525" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
+    <text x="290" y="545" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
+    <text x="290" y="565" font-family="Arial, sans-serif" font-size="10" fill="white">🔗 pm_id (VARCHAR, FK)</text>
+    <text x="290" y="585" font-family="Arial, sans-serif" font-size="10" fill="white">vibration_x (FLOAT)</text>
+    <text x="290" y="605" font-family="Arial, sans-serif" font-size="10" fill="white">vibration_y (FLOAT)</text>
+    <text x="290" y="625" font-family="Arial, sans-serif" font-size="10" fill="white">vibration_z (FLOAT)</text>
+    <text x="290" y="640" font-family="Arial, sans-serif" font-size="9" fill="#d2b4de">(10초 간격)</text>
+  </g>
+
+  <!-- Machine_Status_Data 테이블 -->
+  <g>
+    <rect x="700" y="480" width="220" height="120" fill="#34495e" stroke="#2c3e50" stroke-width="2" rx="8"/>
+    <rect x="700" y="480" width="220" height="30" fill="#2c3e50" rx="8"/>
+    <text x="810" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Machine_Status_Data</text>
+    <text x="710" y="525" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
+    <text x="710" y="545" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
+    <text x="710" y="565" font-family="Arial, sans-serif" font-size="10" fill="white">🔗 pm_id (VARCHAR, FK)</text>
+    <text x="710" y="585" font-family="Arial, sans-serif" font-size="10" fill="white">status (INT)</text>
+    <text x="710" y="605" font-family="Arial, sans-serif" font-size="9" fill="#bdc3c7">(10초 간격)</text>
+  </g>
+
+  <!-- Operation_Schedule 테이블 -->
+  <g>
+    <rect x="950" y="60" width="200" height="120" fill="#16a085" stroke="#138d75" stroke-width="2" rx="8"/>
+    <rect x="950" y="60" width="200" height="30" fill="#138d75" rx="8"/>
+    <text x="1050" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Operation_Schedule</text>
+    <text x="960" y="105" font-family="Arial, sans-serif" font-size="10" fill="white">구분 (VARCHAR)</text>
+    <text x="960" y="125" font-family="Arial, sans-serif" font-size="10" fill="white">시작시간 (TIME)</text>
+    <text x="960" y="145" font-family="Arial, sans-serif" font-size="10" fill="white">종료시간 (TIME)</text>
+    <text x="960" y="165" font-family="Arial, sans-serif" font-size="10" fill="white">설명 (VARCHAR)</text>
+    <text x="960" y="185" font-family="Arial, sans-serif" font-size="9" fill="#a2d9ce">(고정 테이블)</text>
+  </g>
+
+  <!-- 관계선 및 화살표 -->
+  <!-- Process_Machine_Info → Production_Data -->
+  <line x1="580" y1="220" x2="420" y2="280" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="500" y="245" font-family="Arial, sans-serif" font-size="9" fill="#2c3e50">1:N</text>
+
+  <!-- Process_Machine_Info → Power_Data -->
+  <line x1="620" y1="220" x2="780" y2="280" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="700" y="245" font-family="Arial, sans-serif" font-size="9" fill="#2c3e50">1:N</text>
+
+  <!-- Process_Machine_Info → Vibration_Data -->
+  <line x1="580" y1="220" x2="420" y2="480" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="480" y="350" font-family="Arial, sans-serif" font-size="9" fill="#2c3e50">1:N</text>
+
+  <!-- Process_Machine_Info → Machine_Status_Data -->
+  <line x1="620" y1="220" x2="780" y2="480" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="720" y="350" font-family="Arial, sans-serif" font-size="9" fill="#2c3e50">1:N</text>
+
+  <!-- 화살표 정의 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+     refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2c3e50" />
+    </marker>
+  </defs>
+
+  <!-- 범례 -->
+  <g>
+    <rect x="50" y="680" width="300" height="100" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1" rx="5"/>
+    <text x="60" y="700" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2c3e50">범례</text>
+    <text x="60" y="720" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">🔑 Primary Key</text>
+    <text x="60" y="735" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">🔗 Foreign Key</text>
+    <text x="60" y="750" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">1:N - 일대다 관계</text>
+    <text x="60" y="765" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">AUTO_INC - Auto Increment</text>
+  </g>
+
+  <!-- 데이터 수집 주기 정보 -->
+  <g>
+    <rect x="850" y="680" width="300" height="100" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1" rx="5"/>
+    <text x="860" y="700" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2c3e50">데이터 수집 주기</text>
+    <text x="860" y="720" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">• 진동/가동상태: 10초</text>
+    <text x="860" y="735" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">• 전력량: 1분</text>
+    <text x="860" y="750" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">• 환경데이터: 10분</text>
+    <text x="860" y="765" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">• 생산실적: 완료시점</text>
+  </g>
+</svg>
