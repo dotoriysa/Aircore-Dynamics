@@ -34,6 +34,7 @@
         <span>정비 중:</span>
         <span style="color: #e74c3c;">0대</span>
       </div>
+      <div class="status-item" v-if="!selectedEquipment">
         <span>선택된 장비:</span>
         <span>없음</span>
       </div>
