@@ -25,6 +25,7 @@
         <LinesTab v-else-if="activeTab === 'lines'" />
         <PredictionTab v-else-if="activeTab === 'prediction'" />
         <InventoryTab v-else-if="activeTab === 'inventory'" />
+        <NonOperationalTab v-else-if="activeTab === 'non-operational'" />
       </div>
     </div>
   </div>
@@ -36,6 +37,7 @@ import DashboardTab from '../components/dashboard/DashboardTab.vue';
 import LinesTab from '../components/dashboard/LinesTab.vue';
 import PredictionTab from '../components/dashboard/PredictionTab.vue';
 import InventoryTab from '../components/dashboard/InventoryTab.vue';
+import NonOperationalTab from '../components/dashboard/NonOperationalTab.vue';
 
 // --- State ---
 const currentTime = ref(new Date().toLocaleString('ko-KR'));
@@ -45,6 +47,7 @@ const tabs = [
   { id: 'lines', name: '라인별 상세' },
   { id: 'prediction', name: '예측 분석' },
   { id: 'inventory', name: '재고/출하' },
+  { id: 'non-operational', name: '비가동 장비 관리' },
 ];
 let timeInterval;
 
