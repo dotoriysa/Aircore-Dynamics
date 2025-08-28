@@ -25,7 +25,7 @@
       <div class="card" v-if="shouldShowEquipCard">
         <div class="card-header">
           <div class="card-title">{{ currentLineData.equip.title }}</div>
-          <div :class="['status-indicator', currentLineData.equip.status]"></div>
+           <div :class="['status-indicator', currentLineData.equip.status]"></div>
         </div>
         <div class="metric" v-for="metric in currentLineData.equip.metrics" :key="metric.label">
           <span>{{ metric.label }}</span>
@@ -111,10 +111,6 @@ const selectedMachineCurrentStatus = computed(() => {
   }
 });
 
-function toggleViewerAnimation() {
-  isAnimationRunning.value = viewerRef.value?.toggleAnimation();
-}
-
 const lineData = reactive({
   casting: { title: '주조 라인', prod: { title: '주조 라인 - 생산 현황', status: 'status-good', metrics: [] }, equip: { title: '설비별 상태', status: 'status-good', metrics: [] } },
   machining: { title: '가공 라인', prod: { title: '가공 라인 - 생산 현황', status: 'status-good', metrics: [] }, equip: { title: '설비별 상태', status: 'status-good', metrics: [] } },
@@ -135,13 +131,67 @@ const processMachineInfo = [
     {PM_ID: 'PM008', Process_Name: '포장', Machine_Name: '포장기', Standard_Cycle_Time: 600, Description: '자동 포장 및 밀봉 장비'}
 ];
 
-const shouldShowEquipCard = computed(() => {
-  return selectedLine.value === 'casting' || selectedLine.value === 'machining';
-});
 const lineApiNames = {
     casting: '주조', machining: '가공', inspection: '검사', assembly: '조립', packaging: '포장'
 };
 const highlightedProcessName = computed(() => lineApiNames[selectedLine.value]);
+
+
+// ✨✨✨ --- 1. 라인의 종합 상태를 계산하는 computed 속성 추가 --- ✨✨✨
+const lineEquipmentStatus = computed(() => {
+  // 현재 선택된 라인의 공정 이름을 찾습니다. (예: '주조')
+  const processName = lineApiNames[selectedLine.value];
+  if (!processName) return 'status-good';
+
+  // 해당 공정에 속한 장비들의 ID 목록을 가져옵니다.
+  const machineIdsForLine = processMachineInfo
+    .filter(machine => machine.Process_Name === processName)
+    .map(machine => machine.PM_ID);
+
+  if (machineIdsForLine.length === 0) {
+    return 'status-good'; // 라인에 장비가 없으면 '정상'
+  }
+
+  // 장비 ID를 이용해 실시간 상태 목록을 가져옵니다.
+  const statuses = machineIdsForLine
+    .map(id => allMachineStatuses.value[id]?.status)
+    .filter(Boolean); // 데이터가 아직 없으면(undefined) 제외
+
+  // 데이터 로딩 중일 때를 대비
+  if (statuses.length !== machineIdsForLine.length) {
+    return 'status-warning'; // 데이터가 불완전하면 '주의'
+  }
+
+  // 가동 중인 장비 수를 셉니다.
+  const runningCount = statuses.filter(s => s === 'running').length;
+
+  if (runningCount === 0) {
+    return 'status-danger'; // 모두 멈춤 -> 빨간색
+  } else if (runningCount === machineIdsForLine.length) {
+    return 'status-good'; // 모두 가동 -> 초록색
+  } else {
+    return 'status-warning'; // 일부만 가동 -> 노란색
+  }
+});
+
+// ✨✨✨ --- 2. 계산된 상태를 UI에 반영하는 watch 로직 추가 --- ✨✨✨
+watch(lineEquipmentStatus, (newStatus) => {
+  const lineKey = selectedLine.value;
+  if (lineData[lineKey]) {
+    // 생산 현황과 설비 상태 카드의 status를 모두 업데이트
+    lineData[lineKey].prod.status = newStatus;
+    lineData[lineKey].equip.status = newStatus;
+  }
+}, { immediate: true }); // 컴포넌트 로드 시 즉시 실행
+
+
+function toggleViewerAnimation() {
+  isAnimationRunning.value = viewerRef.value?.toggleAnimation();
+}
+
+const shouldShowEquipCard = computed(() => {
+  return selectedLine.value === 'casting' || selectedLine.value === 'machining';
+});
 
 async function updateAllMachineStatuses() {
   const newStatuses = {};
@@ -211,8 +261,7 @@ async function fetchData(lineKey) {
     const response = await fetch(`/api/process_dashboard/${apiName}`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-
-    // ✨✨✨ --- 여기서 모든 값의 소수점을 두 자리로 통일 --- ✨✨✨
+    
     const prodMetrics = [
         { label: '시간당 생산량', value: `${data.daily_total_production}개` },
         { label: '가동률', value: `${parseFloat(data.total_operation_rate || 0).toFixed(2)}%` },

@@ -188,7 +188,6 @@ const apiData = reactive({
 
 const chartData = ref([]);
 
-// ✨✨✨ --- '현재 상태' 표시를 위한 computed 속성 추가 --- ✨✨✨
 const selectedMachineCurrentStatus = computed(() => {
   if (!selectedMachine.value || !allMachineStatuses.value[selectedMachine.value.PM_ID]) {
     return { text: '확인 중...', class: 'status-unknown' };
@@ -210,6 +209,8 @@ async function fetchData() {
     Object.assign(apiData, data);
     apiData.total_operation_rate = parseFloat(data.total_operation_rate);
     apiData.daily_total_production = parseInt(data.daily_total_production);
+    // ✨✨✨ --- 여기서 전력 소비량 소수점 포맷팅 --- ✨✨✨
+    apiData.total_power_consumption = parseFloat(data.total_power_consumption || 0).toFixed(2);
   } catch (error) {
     console.error("Failed to fetch dashboard summary:", error);
   }
@@ -273,7 +274,6 @@ async function updateInfoPanel(data) {
       
       const machineData = await response.json();
       
-      // ✨✨✨ --- 데이터 할당 시점에 소수점 포맷팅 적용 --- ✨✨✨
       selectedMachineRealtimeData.value = {
         hourly_production: machineData.dailyProduction || 0,
         operation_rate: parseFloat(machineData.operationRate || 0).toFixed(2),
@@ -331,7 +331,6 @@ onUnmounted(() => {
 .info-item .defect-rate { color: #e74c3c; }
 .loading-text { font-size: 0.85rem; color: #f39c12; text-align: center; padding: 1rem 0; }
 
-/* ✨✨✨ --- '현재 상태' 표시를 위한 스타일 추가 --- ✨✨✨ */
 .metric-value.status-running {
   color: #27ae60;
 }
