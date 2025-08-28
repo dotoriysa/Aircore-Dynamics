@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.PowerMapper">
+
+    <!-- 전력량 데이터 삽입 -->
+    <insert id="insertPowerData" parameterType="com.example.demo.model.PowerData">
+        <![CDATA[
+        INSERT INTO power_data (
+            timestamp,
+            pm_id,
+            power_consumption
+        ) VALUES (
+            #{timestamp},
+            #{pmId},
+            #{powerConsumption}
+        )
+        ]]>
+    </insert>
+
+    <select id="selectAllPowerDataRecords" resultType="com.example.demo.model.PowerData">
+        <![CDATA[
+        SELECT
+            timestamp,
+            power_consumption
+        FROM
+            power_data
+        WHERE
+            pm_id = #{pmId}
+        ORDER BY
+            timestamp ASC
+        ]]>
+    </select>
+
+</mapper>

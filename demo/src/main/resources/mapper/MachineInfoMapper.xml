@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.MachineInfoMapper">
+
+    <resultMap id="ProcessMachineInfoMap" type="com.example.demo.model.ProcessMachineInfo">
+        <id property="pmId" column="pm_id"/>
+        <result property="processName" column="process_name"/>
+        <result property="machineName" column="machine_name"/>
+        <result property="standardCycleTime" column="standard_cycle_time"/>
+        <result property="description" column="description"/>
+    </resultMap>
+
+    <select id="getAllMachineInfos" resultMap="ProcessMachineInfoMap">
+        SELECT
+        pm_id,
+        process_name,
+        machine_name,
+        standard_cycle_time,
+        description
+        FROM
+        process_machine_info
+    </select>
+
+    <select id="getMachineInfosByProcessName" resultMap="ProcessMachineInfoMap">
+        SELECT
+        pm_id,
+        process_name,
+        machine_name,
+        standard_cycle_time,
+        description
+        FROM
+        process_machine_info
+        WHERE
+        process_name = #{processName}
+    </select>
+
+</mapper>

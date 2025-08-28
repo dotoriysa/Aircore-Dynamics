@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.MachineStatusMapper">
+
+    <!-- 기계 상태 데이터 삽입 -->
+    <insert id="insertMachineStatusData" parameterType="com.example.demo.model.MachineStatusData">
+        <![CDATA[
+        INSERT INTO machine_status_data (
+            timestamp,
+            pm_id,
+            status,
+            error_code
+        ) VALUES (
+            #{timestamp},
+            #{pmId},
+            #{status},
+            #{errorCode}
+        )
+        ]]>
+    </insert>
+
+    <!-- 특정 장비의 상태를 점검 상태(2)로 업데이트 -->
+    <insert id="updateMachineStatusToMaintenance">
+        <![CDATA[
+        INSERT INTO machine_status_data (
+            timestamp,
+            pm_id,
+            status,
+            error_code
+        ) VALUES (
+            NOW(),
+            #{pmId},
+            2,
+            #{errorCode}
+        )
+        ]]>
+    </insert>
+
+    <!-- 특정 장비의 상태를 변경 -->
+    <insert id="updateMachineStatus">
+        <![CDATA[
+    INSERT INTO machine_status_data (
+        timestamp,
+        pm_id,
+        status,
+        error_code
+    ) VALUES (
+        NOW(),
+        #{pmId},
+        #{status},
+        NULL
+    )
+    ]]>
+    </insert>
+
+    <select id="selectLatestMachineStatus" resultType="com.example.demo.model.MachineStatusData">
+        <![CDATA[
+        SELECT
+            id,
+            timestamp,
+            pm_id,
+            status,
+            error_code
+        FROM
+            machine_status_data
+        WHERE
+            pm_id = #{pmId}
+        ORDER BY
+            timestamp DESC
+        LIMIT 1
+        ]]>
+    </select>
+
+    <select id="selectAllMachineStatusRecords" resultType="com.example.demo.model.MachineStatusData">
+        <![CDATA[
+        SELECT
+            timestamp,
+            status,
+            error_code
+        FROM
+            machine_status_data
+        WHERE
+            pm_id = #{pmId}
+            AND DATE(timestamp) = CURDATE()
+        ORDER BY
+            timestamp ASC
+        ]]>
+    </select>
+
+</mapper>

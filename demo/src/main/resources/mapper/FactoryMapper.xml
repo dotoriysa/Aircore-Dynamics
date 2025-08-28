@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.FactoryMapper">
+
+    <select id="selectLatestEnvironmentData" resultType="com.example.demo.model.EnvironmentData">
+        SELECT id,
+        timestamp,
+        temperature,
+        humidity
+        FROM environment_data
+        ORDER BY timestamp DESC
+        LIMIT 1
+    </select>
+
+    <insert id="insertEnvironmentData" parameterType="com.example.demo.model.EnvironmentData">
+        INSERT INTO environment_data (timestamp, temperature, humidity)
+        VALUES (#{timestamp}, #{temperature}, #{humidity})
+    </insert>
+
+</mapper>

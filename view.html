@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에어코어 다이나믹스 - 통합 3D 대시보드</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        /* --- 기본 및 대시보드 스타일 --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow: hidden; /* 스크롤 방지 */
+        }
+
+        .header {
+            background: rgba(28, 49, 58, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(77, 208, 225, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(77, 208, 225, 0.2);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .time-display {
+            font-size: 1.1rem;
+            color: #e0e0e0;
+        }
+        
+        #factoryViewer {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        /* --- factory_3d_model.html 에서 가져온 UI 스타일 --- */
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            padding: 10px 15px;
+            background: rgba(52, 73, 94, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .control-btn:hover {
+            background: rgba(52, 73, 94, 1);
+            transform: translateY(-2px);
+        }
+
+        .status-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            min-width: 250px;
+            z-index: 100;
+        }
+
+        .status-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .equipment-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #e74c3c;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        .help-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            max-width: 200px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="factoryViewer"></div>
+
+    <div class="controls">
+        <button class="control-btn" id="animationToggle">
+            <span id="animationBtn">⏸️ 일시정지</span>
+        </button>
+        <button class="control-btn" id="resetViewBtn">🔄 리셋 뷰</button>
+        <button class="control-btn" id="topViewBtn">📐 탑 뷰</button>
+        <button class="control-btn" id="focusBtn">🎯 장비 포커스</button>
+        <button class="control-btn" id="autoRotateBtn">🔄 자동 회전</button>
+    </div>
+
+    <div class="status-panel">
+        <div class="status-title">🏭 공장 현황</div>
+        <div class="status-item">
+            <span>전체 장비:</span>
+            <span id="totalEquipment">8대</span>
+        </div>
+        <div class="status-item">
+            <span>가동 중:</span>
+            <span id="runningEquipment" style="color: #27ae60;">7대</span>
+        </div>
+        <div class="status-item">
+            <span>주의 필요:</span>
+            <span id="warningEquipment" style="color: #f39c12;">1대</span>
+        </div>
+        <div class="status-item">
+            <span>정비 중:</span>
+            <span id="maintenanceEquipment" style="color: #e74c3c;">0대</span>
+        </div>
+        <div class="status-item">
+            <span>선택된 장비:</span>
+            <span id="selectedEquipment">없음</span>
+        </div>
+    </div>
+
+    <div class="equipment-legend">
+        <div class="legend-title">장비 구분</div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e74c3c;"></div>
+            <span>주조기 (3대)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #3498db;"></div>
+            <span>가공기 (2대)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #2ecc71;"></div>
+            <span>검사장비 (1대)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f39c12;"></div>
+            <span>조립기 (1대)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #8e44ad;"></div>
+            <span>포장기 (1대)</span>
+        </div>
+    </div>
+
+    <div class="help-panel">
+        <div style="font-weight: bold; margin-bottom: 8px; color: #3498db;">💡 조작법</div>
+        <div>• 마우스: 장비 클릭/회전</div>
+        <div>• WASD: 카메라 이동</div>
+        <div>• QE: 상하 이동</div>
+        <div>• R: 뷰 리셋</div>
+        <div>• T: 탑뷰 전환</div>
+        <div>• F: 장비 포커스</div>
+        <div>• 스페이스: 애니메이션</div>
+    </div>
+
+    <script>
+        // --- 전역 변수 및 데이터 ---
+        let scene, camera, renderer, animationId, controls;
+        let raycaster, mouse;
+        const factoryObjects = new THREE.Group();
+        let selectedObject = null;
+        const initialColors = new Map();
+        
+        // --- 추가된 상태 변수 ---
+        let isAnimationRunning = true;
+        let isTopView = false;
+        let currentFocusIndex = 0;
+
+
+        const processMachineInfo = [
+            {PM_ID: 'PM001', Process_Name: '주조', Machine_Name: '주조기1', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 1호기'},
+            {PM_ID: 'PM002', Process_Name: '주조', Machine_Name: '주조기2', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 2호기'},
+            {PM_ID: 'PM003', Process_Name: '주조', Machine_Name: '주조기3', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 3호기'},
+            {PM_ID: 'PM004', Process_Name: '가공', Machine_Name: '가공기1', Standard_Cycle_Time: 1800, Description: '정밀 가공 및 성형 장비 1호기'},
+            {PM_ID: 'PM005', Process_Name: '가공', Machine_Name: '가공기2', Standard_Cycle_Time: 1800, Description: '정밀 가공 및 성형 장비 2호기'},
+            {PM_ID: 'PM006', Process_Name: '검사', Machine_Name: '검사장비', Standard_Cycle_Time: 900, Description: '품질 검사 및 측정 장비'},
+            {PM_ID: 'PM007', Process_Name: '조립', Machine_Name: '조립기', Standard_Cycle_Time: 1200, Description: '부품 조립 및 결합 장비'},
+            {PM_ID: 'PM008', Process_Name: '포장', Machine_Name: '포장기', Standard_Cycle_Time: 600, Description: '자동 포장 및 밀봉 장비'}
+        ];
+
+        // --- 초기화 ---
+        document.addEventListener('DOMContentLoaded', initialize);
+
+        function initialize() {
+            console.log('대시보드 초기화 시작...');
+            initFactoryView();
+            setupEventListeners();
+            setupKeyboardControls();
+            animate();
+            console.log('대시보드 초기화 완료!');
+        }
+        
+        // --- 3D 팩토리 뷰 관련 함수 ---
+        function initFactoryView() {
+            try {
+                const container = document.getElementById('factoryViewer');
+                if (!container) return;
+
+                // Scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x1a2a3a);
+                scene.fog = new THREE.Fog(0x1a2a3a, 40, 120);
+
+                // Camera
+                camera = new THREE.PerspectiveCamera(60, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+                camera.position.set(25, 15, 25);
+
+                // Renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(container.offsetWidth, container.offsetHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                container.appendChild(renderer.domElement);
+
+                // Controls
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.screenSpacePanning = false;
+                controls.minDistance = 5;
+                controls.maxDistance = 80;
+                controls.maxPolarAngle = Math.PI / 2;
+                controls.target.set(0, 2, 0); // 컨트롤의 타겟을 중앙으로 설정
+                camera.lookAt(controls.target);
+
+                // Lights
+                scene.add(new THREE.AmbientLight(0x404040, 1.5));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                dirLight.position.set(10, 20, 5);
+                dirLight.castShadow = true;
+                scene.add(dirLight);
+
+                // Floor
+                const floorGeom = new THREE.PlaneGeometry(100, 100);
+                const floorMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.8 });
+                const floor = new THREE.Mesh(floorGeom, floorMat);
+                floor.rotation.x = -Math.PI / 2;
+                floor.receiveShadow = true;
+                scene.add(floor);
+
+                // Machines
+                createMachines();
+                scene.add(factoryObjects);
+
+                // Interaction
+                raycaster = new THREE.Raycaster();
+                mouse = new THREE.Vector2();
+                container.addEventListener('click', onMouseClick);
+
+                console.log('3D Factory 초기화 완료');
+            } catch (error) {
+                console.error('3D 초기화 오류:', error);
+            }
+        }
+        
+        function handleResize() {
+            if (camera && renderer) {
+                const container = document.getElementById('factoryViewer');
+                if (container) {
+                    camera.aspect = container.offsetWidth / container.offsetHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.offsetWidth, container.offsetHeight);
+                }
+            }
+        }
+        
+        // --- 이벤트 리스너 설정 ---
+        function setupEventListeners() {
+            document.getElementById('animationToggle').addEventListener('click', toggleAnimation);
+            document.getElementById('resetViewBtn').addEventListener('click', resetView);
+            document.getElementById('topViewBtn').addEventListener('click', toggleTopView);
+            document.getElementById('focusBtn').addEventListener('click', focusNextEquipment);
+            document.getElementById('autoRotateBtn').addEventListener('click', toggleAutoRotate);
+            window.addEventListener('resize', handleResize);
+        }
+
+        // --- 컨트롤 함수들 (추가 및 수정) ---
+        function toggleAnimation() {
+            isAnimationRunning = !isAnimationRunning;
+            const btn = document.getElementById('animationBtn');
+            if (isAnimationRunning) {
+                btn.textContent = '⏸️ 일시정지';
+                animate();
+            } else {
+                btn.textContent = '▶️ 시작';
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function resetView() {
+            isTopView = false;
+            controls.autoRotate = false; // 자동 회전 중지
+            camera.position.set(25, 15, 25);
+            controls.target.set(0, 2, 0);
+        }
+
+        function toggleTopView() {
+            isTopView = !isTopView;
+            controls.autoRotate = false; // 자동 회전 중지
+            
+            if (isTopView) {
+                camera.position.set(0, 45, 0);
+                controls.target.set(0, 2, 0);
+            } else {
+                resetView();
+            }
+        }
+
+        function focusNextEquipment() {
+            if (factoryObjects.children.length === 0) return;
+            
+            const equipment = factoryObjects.children[currentFocusIndex];
+            focusOnEquipment(equipment);
+            
+            document.getElementById('selectedEquipment').textContent = `${equipment.userData.Machine_Name} (${equipment.userData.Process_Name})`;
+            currentFocusIndex = (currentFocusIndex + 1) % factoryObjects.children.length;
+            
+            controls.autoRotate = false; // 자동 회전 중지
+            isTopView = false;
+        }
+        
+        function focusOnEquipment(equipment) {
+            const pos = new THREE.Vector3();
+            equipment.getWorldPosition(pos); // 그룹의 월드 좌표를 가져옴
+            
+            // 카메라 위치를 장비 뒤쪽 대각선 위로 설정
+            camera.position.set(pos.x + 8, pos.y + 8, pos.z + 8);
+            
+            // OrbitControls의 타겟을 장비 위치로 설정
+            controls.target.set(pos.x, pos.y, pos.z);
+        }
+
+        function toggleAutoRotate() {
+            controls.autoRotate = !controls.autoRotate;
+            if (controls.autoRotate) {
+                isTopView = false; // 탑뷰 해제
+            }
+        }
+
+        // --- 키보드 컨트롤 (추가) ---
+        function setupKeyboardControls() {
+            document.addEventListener('keydown', (event) => {
+                if (!camera) return;
+
+                const moveSpeed = 1.0;
+                
+                // OrbitControls의 팬 기능을 모방하여 WASD 이동 구현
+                const forward = new THREE.Vector3();
+                camera.getWorldDirection(forward);
+                forward.y = 0;
+                forward.normalize();
+                
+                const right = new THREE.Vector3().crossVectors(camera.up, forward).normalize();
+
+                switch(event.key.toLowerCase()) {
+                    case 'w':
+                        camera.position.addScaledVector(forward, moveSpeed);
+                        controls.target.addScaledVector(forward, moveSpeed);
+                        controls.autoRotate = false;
+                        break;
+                    case 's':
+                        camera.position.addScaledVector(forward, -moveSpeed);
+                        controls.target.addScaledVector(forward, -moveSpeed);
+                        controls.autoRotate = false;
+                        break;
+                    case 'a':
+                        camera.position.addScaledVector(right, moveSpeed);
+                        controls.target.addScaledVector(right, moveSpeed);
+                        controls.autoRotate = false;
+                        break;
+                    case 'd':
+                        camera.position.addScaledVector(right, -moveSpeed);
+                        controls.target.addScaledVector(right, -moveSpeed);
+                        controls.autoRotate = false;
+                        break;
+                    case 'q':
+                        camera.position.y += moveSpeed;
+                        controls.target.y += moveSpeed;
+                        controls.autoRotate = false;
+                        break;
+                    case 'e':
+                        camera.position.y -= moveSpeed;
+                        controls.target.y -= moveSpeed;
+                        controls.autoRotate = false;
+                        break;
+                    case 'r': resetView(); break;
+                    case 't': toggleTopView(); break;
+                    case 'f': focusNextEquipment(); break;
+                    case ' ':
+                        event.preventDefault();
+                        toggleAnimation();
+                        break;
+                }
+            });
+        }
+
+
+        // --- Machine Model Creation Functions (기존과 동일) ---
+        function createMachines() {
+            const machineLayout = {
+                '주조': { x: -20, z: -5, count: 0 },
+                '가공': { x: -5, z: -5, count: 0 },
+                '검사': { x: 10, z: 0, count: 0 },
+                '조립': { x: 20, z: 0, count: 0 },
+                '포장': { x: 20, z: 10, count: 0 }
+            };
+
+            processMachineInfo.forEach(data => {
+                const layout = machineLayout[data.Process_Name];
+                if (!layout) return;
+
+                let machine;
+                switch (data.Process_Name) {
+                    case '주조': machine = createCastingMachine(); break;
+                    case '가공': machine = createProcessingMachine(); break;
+                    case '검사': machine = createInspectionMachine(); break;
+                    case '조립': machine = createAssemblyMachine(); break;
+                    case '포장': machine = createPackagingMachine(); break;
+                }
+
+                if (machine) {
+                    machine.position.set(layout.x, 0, layout.z + layout.count * 8);
+                    machine.userData = data;
+                    
+                    const label = createLabel(data.Machine_Name);
+                    label.position.set(0, 5, 0);
+                    machine.add(label);
+
+                    factoryObjects.add(machine);
+                    layout.count++;
+                }
+            });
+        }
+
+        function createLabel(text) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            context.font = 'Bold 40px Arial';
+            context.fillStyle = 'rgba(255,255,255,0.95)';
+            context.fillText(text, 0, 40);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(10, 5, 1.0);
+            return sprite;
+        }
+
+        function createCastingMachine() {
+            const group = new THREE.Group();
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c, roughness: 0.6 });
+            const furnaceMat = new THREE.MeshStandardMaterial({ color: 0x5a6d7c, metalness: 0.8 });
+            const base = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 6), baseMat);
+            base.position.y = 2;
+            group.add(base);
+            const furnace = new THREE.Mesh(new THREE.CylinderGeometry(2, 2.2, 3, 32), furnaceMat);
+            furnace.position.y = 5.5;
+            group.add(furnace);
+            return group;
+        }
+
+        function createProcessingMachine() {
+            const group = new THREE.Group();
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x3498db, roughness: 0.5 });
+            const movingMat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d, metalness: 0.7 });
+            const base = new THREE.Mesh(new THREE.BoxGeometry(5, 3, 4), baseMat);
+            base.position.y = 1.5;
+            group.add(base);
+            const arm = new THREE.Mesh(new THREE.BoxGeometry(1, 4, 1), movingMat);
+            arm.position.set(0, 3, 0);
+            group.add(arm);
+            return group;
+        }
+
+        function createInspectionMachine() {
+            const group = new THREE.Group();
+            const tableMat = new THREE.MeshStandardMaterial({ color: 0xbdc3c7 });
+            const scannerMat = new THREE.MeshStandardMaterial({ color: 0x2ecc71, emissive: 0x113311 });
+            const table = new THREE.Mesh(new THREE.BoxGeometry(6, 0.5, 4), tableMat);
+            table.position.y = 2;
+            group.add(table);
+            const scannerArm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3, 0.5), scannerMat);
+            scannerArm.position.set(-2.5, 3.5, 0);
+            group.add(scannerArm);
+            const scannerHead = new THREE.Mesh(new THREE.BoxGeometry(5, 0.5, 0.5), scannerMat);
+            scannerHead.position.set(0, 5, 0);
+            group.add(scannerHead);
+            return group;
+        }
+
+        function createAssemblyMachine() {
+            const group = new THREE.Group();
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x95a5a6 });
+            const robotMat = new THREE.MeshStandardMaterial({ color: 0xf39c12, roughness: 0.3 });
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1, 32), baseMat);
+            base.position.y = 0.5;
+            group.add(base);
+            const arm1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3, 0.5), robotMat);
+            arm1.position.y = 2.5;
+            group.add(arm1);
+            const arm2 = new THREE.Mesh(new THREE.BoxGeometry(2, 0.5, 0.5), robotMat);
+            arm2.position.set(1, 4, 0);
+            group.add(arm2);
+            return group;
+        }
+
+        function createPackagingMachine() {
+            const group = new THREE.Group();
+            const conveyorMat = new THREE.MeshStandardMaterial({ color: 0x34495e });
+            const machineMat = new THREE.MeshStandardMaterial({ color: 0x8e44ad, roughness: 0.7 });
+            const conveyor = new THREE.Mesh(new THREE.BoxGeometry(10, 0.5, 3), conveyorMat);
+            conveyor.position.y = 1;
+            group.add(conveyor);
+            const machine = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 4), machineMat);
+            machine.position.y = 3;
+            group.add(machine);
+            return group;
+        }
+
+        // --- Interaction and Animation ---
+        function onMouseClick(event) {
+            const container = document.getElementById('factoryViewer');
+            const rect = container.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(factoryObjects.children, true);
+
+            if (intersects.length > 0) {
+                let object = intersects[0].object;
+                while (object.parent && !object.userData.PM_ID) {
+                    object = object.parent;
+                }
+                if (object.userData.PM_ID) {
+                    highlightObject(object);
+                    document.getElementById('selectedEquipment').textContent = `${object.userData.Machine_Name} (${object.userData.Process_Name})`;
+                }
+            } else {
+                highlightObject(null);
+                document.getElementById('selectedEquipment').textContent = '없음';
+            }
+        }
+
+        function highlightObject(object) {
+            if (selectedObject) {
+                selectedObject.traverse(child => {
+                    if (child.isMesh) {
+                        child.material.emissive.setHex(initialColors.get(child.uuid) || 0x000000);
+                    }
+                });
+            }
+
+            selectedObject = object;
+
+            if (selectedObject) {
+                selectedObject.traverse(child => {
+                    if (child.isMesh) {
+                        initialColors.set(child.uuid, child.material.emissive.getHex());
+                        child.material.emissive.setHex(0x555555);
+                    }
+                });
+            }
+        }
+
+        function animate() {
+            if(isAnimationRunning) {
+              animationId = requestAnimationFrame(animate);
+            }
+            
+            controls.update(); // OrbitControls 업데이트 (자동회전, 댐핑 등)
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
