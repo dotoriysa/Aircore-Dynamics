@@ -63,15 +63,8 @@
         <span>전체 가동률</span>
         <span class="metric-value">{{ apiData.total_operation_rate }}%</span>
       </div>
-        <div class="production-chart">
-        <div
-          v-for="(bar, index) in chartData"
-          :key="index"
-          class="chart-bar"
-          :style="{ height: bar.height + 'px' }"
-        >
-          {{ bar.value }}
-        </div>
+       <div class="production-chart">
+        <v-chart class="chart" :option="chartOption" autoresize />
       </div>
     </div>
     <div class="card">
@@ -160,9 +153,34 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, computed, provide } from 'vue';
 import { RouterLink } from 'vue-router';
 import ThreeViewer from '../ThreeViewer.vue';
+// ✨✨✨ --- 1. ECharts 관련 라이브러리 import --- ✨✨✨
+import { use } from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import { LineChart } from 'echarts/charts';
+import {
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+} from 'echarts/components';
+import VChart, { THEME_KEY } from 'vue-echarts';
+import { graphic } from 'echarts';
+
+
+// ✨✨✨ --- 2. ECharts 컴포넌트 등록 및 다크 테마 설정 --- ✨✨✨
+use([
+  CanvasRenderer,
+  LineChart,
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+]);
+provide(THEME_KEY, 'dark');
+
 
 // --- State ---
 const selectedMachine = ref(null);
@@ -186,7 +204,51 @@ const apiData = reactive({
   normal_rate: 0,
 });
 
-const chartData = ref([]);
+// ✨✨✨ --- 3. ECharts 옵션 객체(ref) 생성 --- ✨✨✨
+const chartOption = ref({
+  backgroundColor: 'transparent',
+  grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
+  tooltip: { trigger: 'axis' },
+  xAxis: {
+    type: 'category',
+    boundaryGap: false,
+    data: [], // 데이터는 onMounted에서 채워집니다.
+    axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.2)' } }
+  },
+  yAxis: {
+    type: 'value',
+    splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } },
+    axisLabel: { color: 'rgba(255, 255, 255, 0.5)' }
+  },
+  series: [
+    {
+      name: '시간당 생산량',
+      type: 'line',
+      smooth: true,
+      showSymbol: false,
+      data: [], // 데이터는 onMounted에서 채워집니다.
+      lineStyle: {
+        width: 2,
+        color: '#4dd0e1'
+      },
+      areaStyle: {
+        color: new graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(77, 208, 225, 0.5)' },
+          { offset: 1, color: 'rgba(77, 208, 225, 0)' }
+        ])
+      }
+    }
+  ]
+});
+
+// 차트에 샘플 데이터를 채우는 함수
+function updateChartData() {
+  const hours = ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00'];
+  const productionData = [85, 120, 155, 140, 160, 152, 165];
+  chartOption.value.xAxis.data = hours;
+  chartOption.value.series[0].data = productionData;
+}
+
 
 const selectedMachineCurrentStatus = computed(() => {
   if (!selectedMachine.value || !allMachineStatuses.value[selectedMachine.value.PM_ID]) {
@@ -209,7 +271,6 @@ async function fetchData() {
     Object.assign(apiData, data);
     apiData.total_operation_rate = parseFloat(data.total_operation_rate);
     apiData.daily_total_production = parseInt(data.daily_total_production);
-    // ✨✨✨ --- 여기서 전력 소비량 소수점 포맷팅 --- ✨✨✨
     apiData.total_power_consumption = parseFloat(data.total_power_consumption || 0).toFixed(2);
   } catch (error) {
     console.error("Failed to fetch dashboard summary:", error);
@@ -220,7 +281,6 @@ const productionProgress = computed(() =>
   Math.min(100, (apiData.daily_total_production / 1100) * 100)
 );
 
-// --- Machine Data ---
 const processMachineInfo = [
     {PM_ID: 'PM001', Process_Name: '주조', Machine_Name: '주조기1', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 1호기'},
     {PM_ID: 'PM002', Process_Name: '주조', Machine_Name: '주조기2', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 2호기'},
@@ -260,7 +320,6 @@ async function updateAllMachineStatuses() {
   allMachineStatuses.value = newStatuses;
 }
 
-// --- Event Handlers ---
 async function updateInfoPanel(data) {
   selectedMachine.value = data;
   selectedMachineRealtimeData.value = null;
@@ -282,7 +341,6 @@ async function updateInfoPanel(data) {
       };
     } catch (error) {
       console.error("Failed to fetch machine status:", error);
-      // 폴백 데이터
       setTimeout(() => {
         selectedMachineRealtimeData.value = {
           hourly_production: Math.floor(Math.random() * 20 + 30),
@@ -299,13 +357,15 @@ function toggleViewerAnimation() {
   isAnimationRunning.value = viewerRef.value?.toggleAnimation();
 }
 
-// --- Lifecycle ---
 onMounted(() => {
   fetchData();
   apiInterval = setInterval(fetchData, 5000);
   
   updateAllMachineStatuses();
   statusInterval = setInterval(updateAllMachineStatuses, 3000);
+
+  // ✨✨✨ --- 4. 컴포넌트 마운트 시 차트 데이터 업데이트 --- ✨✨✨
+  updateChartData();
 });
 
 onUnmounted(() => { 
@@ -315,11 +375,21 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* (기존 스타일 유지) */
+/* (기존 스타일 대부분 유지) */
 .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem}.card{background:rgba(28,49,58,.85);backdrop-filter:blur(10px);border-radius:16px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,.3);border:1px solid rgba(77,208,225,.2);transition:transform .3s ease,box-shadow .3s ease}.card:hover{transform:translateY(-5px);box-shadow:0 12px 40px rgba(0,0,0,.4)}.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid hsla(0,0%,100%,.1)}.card-title{font-size:1.1rem;font-weight:600;color:#f5f5f5}.metric{display:flex;justify-content:space-between;align-items:center;margin:.5rem 0;padding:.5rem;background:rgba(0,0,0,.2);border-radius:8px}.metric-value{font-size:1.2rem;font-weight:700;color:#4dd0e1}.progress-bar{width:100%;height:8px;background:rgba(0,0,0,.3);border-radius:4px;overflow:hidden;margin:.5rem 0}.progress-fill{height:100%;background:linear-gradient(90deg,#0097a7,#4dd0e1);border-radius:4px;transition:width .3s ease}.factory-container{grid-column:span 2;min-height:450px;display:flex;flex-direction:column}.viewer-wrapper{flex-grow:1;position:relative;overflow:hidden;margin-top:.5rem}.factory-controls{display:flex;gap:.5rem}.factory-btn{padding:.5rem 1rem;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;text-decoration:none}
 .machine-info-panel{position:absolute;bottom:1rem;left:1rem;background:rgba(0,0,0,.85);backdrop-filter:blur(5px);color:#fff;padding:1rem;border-radius:8px;font-size:.9rem;width:280px;border:1px solid rgba(77,208,225,.2);transition:opacity .3s ease}.machine-info-panel.hidden{opacity:0;pointer-events:none}
 @media (max-width:1200px){.factory-container{grid-column:span 1}}
-.status-indicator{width:12px;height:12px;border-radius:50%;animation:pulse 2s infinite}.status-good{background-color:#27ae60}.status-warning{background-color:#f39c12}.status-danger{background-color:#e74c3c}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(39,174,96,.4)}70%{box-shadow:0 0 0 10px transparent}to{box-shadow:0 0 0 0 transparent}}.equipment-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;margin-top:1rem}.equipment-item{text-align:center;padding:1rem;background:rgba(0,0,0,.2);border-radius:8px;transition:transform .3s ease;cursor:pointer}.equipment-item:hover{transform:scale(1.05)}.equipment-icon{font-size:2rem;margin-bottom:.5rem}.alert-box{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;padding:1rem;border-radius:8px;margin:.5rem 0;display:flex;align-items:center;gap:.5rem;animation:alertPulse 2s infinite}@keyframes alertPulse{0%,to{opacity:1}50%{opacity:.8}}.production-chart{height:150px;background:rgba(0,0,0,.2);border-radius:8px;position:relative;overflow:hidden;margin:1rem 0;display:flex;align-items:flex-end;justify-content:space-around;padding:1rem}.chart-bar{background:linear-gradient(0deg,#0097a7,#4dd0e1);border-radius:4px 4px 0 0;width:30px;display:flex;align-items:flex-end;justify-content:center;color:#fff;font-size:.7rem;font-weight:700;padding-bottom:.25rem;transition:height 1s ease}
+.status-indicator{width:12px;height:12px;border-radius:50%;animation:pulse 2s infinite}.status-good{background-color:#27ae60}.status-warning{background-color:#f39c12}.status-danger{background-color:#e74c3c}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(39,174,96,.4)}70%{box-shadow:0 0 0 10px transparent}to{box-shadow:0 0 0 0 transparent}}.equipment-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;margin-top:1rem}.equipment-item{text-align:center;padding:1rem;background:rgba(0,0,0,.2);border-radius:8px;transition:transform .3s ease;cursor:pointer}.equipment-item:hover{transform:scale(1.05)}.equipment-icon{font-size:2rem;margin-bottom:.5rem}.alert-box{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;padding:1rem;border-radius:8px;margin:.5rem 0;display:flex;align-items:center;gap:.5rem;animation:alertPulse 2s infinite}@keyframes alertPulse{0%,to{opacity:1}50%{opacity:.8}}
+
+.production-chart {
+  height: 150px; /* 기존 120px에서 150px로 변경하여 차트 영역 확장 */
+  margin-top: 1rem;
+}
+.chart {
+  height: 100%;
+  width: 100%;
+}
+
 .wide-card { grid-column: span 2; }
 .line-selector{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}.line-btn{padding:.5rem 1rem;background:rgba(0,0,0,.2);border:2px solid transparent;border-radius:20px;cursor:pointer;transition:all .3s ease;color:#e0e0e0}.line-btn.active{background:#00bcd4;color:#fff;border-color:#0097a7}
 .info-section { padding: 0.5rem 0; }
