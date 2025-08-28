@@ -21,7 +21,6 @@
         />
         <div class="machine-info-panel" :class="{ hidden: !selectedMachine }">
             <div v-if="selectedMachine">
-            <strong>공정:</strong> {{ selectedMachine.Process_Name }}<br>
               <div class="info-section">
                 <div class="info-item"><strong>ID:</strong> <span>{{ selectedMachine.PM_ID }}</span></div>
                 <div class="info-item"><strong>이름:</strong> <span>{{ selectedMachine.Machine_Name }}</span></div>
@@ -29,6 +28,12 @@
               </div>
               
               <div v-if="selectedMachineRealtimeData" class="info-section realtime-data">
+                <div class="info-item">
+                  <span>현재 상태</span>
+                  <span class="metric-value" :class="selectedMachineCurrentStatus.class">
+                    {{ selectedMachineCurrentStatus.text }}
+                  </span>
+                </div>
                 <div class="info-item"><span>시간당 생산량</span> <span class="metric-value">{{ selectedMachineRealtimeData.hourly_production }}개</span></div>
                 <div class="info-item"><span>가동률</span> <span class="metric-value">{{ selectedMachineRealtimeData.operation_rate }}%</span></div>
                 <div class="info-item"><span>전력량</span> <span class="metric-value">{{ selectedMachineRealtimeData.power_consumption }}kWh</span></div>
@@ -183,6 +188,20 @@ const apiData = reactive({
 
 const chartData = ref([]);
 
+// ✨✨✨ --- '현재 상태' 표시를 위한 computed 속성 추가 --- ✨✨✨
+const selectedMachineCurrentStatus = computed(() => {
+  if (!selectedMachine.value || !allMachineStatuses.value[selectedMachine.value.PM_ID]) {
+    return { text: '확인 중...', class: 'status-unknown' };
+  }
+  const status = allMachineStatuses.value[selectedMachine.value.PM_ID].status;
+  if (status === 'running') {
+    return { text: '가동 중', class: 'status-running' };
+  } else {
+    return { text: '멈춤', class: 'status-stopped' };
+  }
+});
+
+
 async function fetchData() {
   try {
     const response = await fetch('/api/main-dashboard/summary');
@@ -215,35 +234,28 @@ const processMachineInfo = [
 async function updateAllMachineStatuses() {
   const newStatuses = {};
   
-  // 모든 장비의 상태를 병렬로 조회하기 위해 Promise 배열 생성
   const statusPromises = processMachineInfo.map(async (machine) => {
     try {
       const response = await fetch(`/api/machine-dashboard/${machine.PM_ID}`);
       if (!response.ok) {
         console.error(`Error fetching status for ${machine.PM_ID}: ${response.statusText}`);
-        return { pmId: machine.PM_ID, status: 'stopped' }; // 에러 발생 시 '멈춤'으로 처리
+        return { pmId: machine.PM_ID, status: 'stopped' };
       }
       const data = await response.json();
-      
-      // 백엔드 상태(1: 가동, 0: 멈춤)를 프론트엔드 상태('running', 'stopped')로 변환
       const frontendStatus = data.status === 1 ? 'running' : 'stopped';
-      
       return { pmId: machine.PM_ID, status: frontendStatus };
     } catch (error) {
       console.error(`Failed to fetch machine status for ${machine.PM_ID}:`, error);
-      return { pmId: machine.PM_ID, status: 'stopped' }; // 예외 발생 시 '멈춤'으로 처리
+      return { pmId: machine.PM_ID, status: 'stopped' };
     }
   });
 
-  // 모든 API 호출이 완료될 때까지 대기
   const resolvedStatuses = await Promise.all(statusPromises);
 
-  // 조회된 상태를 ThreeViewer가 사용하는 형식으로 변환
   resolvedStatuses.forEach(item => {
     newStatuses[item.pmId] = { status: item.status };
   });
 
-  // 상태 업데이트 (이 변경이 ThreeViewer에 자동으로 반영됨)
   allMachineStatuses.value = newStatuses;
 }
 
@@ -254,46 +266,29 @@ async function updateInfoPanel(data) {
 
   if (data) {
     try {
-      console.log('Requesting machine data for PM_ID:', data.PM_ID); // 디버깅용
-      
       const response = await fetch(`/api/machine-dashboard/${data.PM_ID}`);
-      
-      console.log('Response status:', response.status); // 상태 코드 확인
-      console.log('Response headers:', response.headers); // 헤더 확인
-      
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error response:', errorText);
-        throw new Error(`Machine data fetch failed: ${response.status} - ${errorText}`);
+        throw new Error(`Machine data fetch failed: ${response.status}`);
       }
       
       const machineData = await response.json();
-      console.log('Received machine data:', machineData); // 받은 데이터 확인
       
-      // 컨트롤러 응답 구조에 맞게 데이터 매핑
+      // ✨✨✨ --- 데이터 할당 시점에 소수점 포맷팅 적용 --- ✨✨✨
       selectedMachineRealtimeData.value = {
         hourly_production: machineData.dailyProduction || 0,
-        operation_rate: machineData.operationRate || "0.00",
-        power_consumption: machineData.powerConsumption || "0.00",
-        defect_rate: machineData.defectRate || "0.00",
-        status: machineData.status || "UNKNOWN"
+        operation_rate: parseFloat(machineData.operationRate || 0).toFixed(2),
+        power_consumption: parseFloat(machineData.powerConsumption || 0).toFixed(2),
+        defect_rate: parseFloat(machineData.defectRate || 0).toFixed(2),
       };
     } catch (error) {
       console.error("Failed to fetch machine status:", error);
-      console.error("Error details:", {
-        message: error.message,
-        stack: error.stack,
-        pmId: data.PM_ID
-      });
-      
-      // 폴백 데이터 (에러 시에만 사용)
+      // 폴백 데이터
       setTimeout(() => {
         selectedMachineRealtimeData.value = {
           hourly_production: Math.floor(Math.random() * 20 + 30),
-          operation_rate: (Math.random() * 5 + 95).toFixed(1),
-          power_consumption: (Math.random() * 10 + 50).toFixed(1),
-          defect_rate: (Math.random() * 2).toFixed(1),
-          status: "ERROR"
+          operation_rate: (Math.random() * 5 + 95).toFixed(2),
+          power_consumption: (Math.random() * 10 + 50).toFixed(2),
+          defect_rate: (Math.random() * 2).toFixed(2),
         };
       }, 500);
     }
@@ -312,6 +307,7 @@ onMounted(() => {
   updateAllMachineStatuses();
   statusInterval = setInterval(updateAllMachineStatuses, 3000);
 });
+
 onUnmounted(() => { 
   clearInterval(apiInterval);
   clearInterval(statusInterval);
@@ -334,4 +330,15 @@ onUnmounted(() => {
 .info-item .metric-value { font-size: 1rem; color: #4dd0e1; font-weight: 600; }
 .info-item .defect-rate { color: #e74c3c; }
 .loading-text { font-size: 0.85rem; color: #f39c12; text-align: center; padding: 1rem 0; }
+
+/* ✨✨✨ --- '현재 상태' 표시를 위한 스타일 추가 --- ✨✨✨ */
+.metric-value.status-running {
+  color: #27ae60;
+}
+.metric-value.status-stopped {
+  color: #e74c3c;
+}
+.metric-value.status-unknown {
+  color: #f39c12;
+}
 </style>
