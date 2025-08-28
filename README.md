@@ -68,7 +68,7 @@ Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**�
 
 | 분야 | 기술 |
 |------|------|
-| **Frontend** | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black) |
+| **Frontend** | ![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=flat&logo=vue.js&logoColor=white) ![ECharts](https://img.shields.io/badge/ECharts-AA344D?style=flat&logo=apacheecharts&logoColor=white) ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)  |
 | **3D Graphics** | ![Three.js](https://img.shields.io/badge/Three.js-000000?style=flat&logo=three.js&logoColor=white) |
 | **Backend** | ![Java](https://img.shields.io/badge/Java%2017-007396?style=flat&logo=java&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot%203.4.9-6DB33F?style=flat&logo=springboot&logoColor=white) ![MyBatis](https://img.shields.io/badge/MyBatis-000000?style=flat&logo=databricks&logoColor=white) |
 | **Database** | ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat&logo=mysql&logoColor=white) |
@@ -76,6 +76,11 @@ Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**�
 | **Deployment** | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white) |
 | **Design** | ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=flat&logo=figma&logoColor=white) |
 
+
+- **Frontend**: Vue.js 기반 SPA(Single Page Application) 구조로 대시보드 구현  
+  - **ECharts**: 생산 지표·설비 상태를 시각적으로 표현하는 대화형 차트/그래프 라이브러리  
+  - **Three.js**: 실시간 3D 공장 뷰어를 구현하여 장비·라인 상태를 직관적으로 모니터링  
+  - **HTML5, CSS3, JavaScript**: UI 구성, 반응형 스타일링 및 기본적인 클라이언트 로직 처리
 - **Backend**: Spring Boot 3.4.9 기반 REST API 서버
 - **ORM/Mapper**: MyBatis를 사용하여 공정/장비/생산 데이터 매핑
 - **Database**: 개발·테스트 단계 및 운영 환경에서 MySQL 연동
@@ -97,30 +102,51 @@ Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**�
 
 이 프로젝트는 별도의 설치 과정이 필요 없습니다. Git 저장소를 클론(clone)하세요.
 
-```bash
-git clone [https://github.com/dotoriysa/Aircore-Dynamics.git](https://github.com/your-username/your-repository.git)
-````
+1. 프로젝트를 클론합니다.
 
-### 실행
+    ```bash
+   git clone https://github.com/your-repo/Aircore-Dynamics.git
+   cd Aircore-Dynamics
+   ```
+2. 프론트엔드 의존성을 설치합니다.
 
-클론한 디렉터리로 이동하여 메인 HTML 파일을 웹 브라우저에서 엽니다.
+   ```bash
+   cd frontend
+   npm install
+   ```
 
-1.  프로젝트 폴더로 이동합니다.
-2.  `Factory_Dashboard.html` 파일을 더블 클릭하거나 브라우저에서 '파일 열기'로 엽니다.
+3. 개발 서버를 실행합니다.
+
+   ```bash
+   npm run dev
+   ```
+
+브라우저에서 http://localhost:5173 (Vite 기본 포트) 에 접속하면 대시보드를 확인할 수 있습니다.
+
+---
 
 ## 📂 파일 구조
 
+```plaintext
+Aircore-Dynamics/
+├── src/                  # Vue.js 프론트엔드 소스
+│   ├── assets/           # 전역 리소스(폰트, 아이콘, 스타일)
+│   ├── components/       # 재사용 UI 컴포넌트
+│   ├── router/           # 라우팅 설정
+│   └── views/            # 페이지 단위 화면
+│
+├── demo/                 # Spring Boot 백엔드 소스
+│   ├── controller/       # API 컨트롤러
+│   ├── service/          # 서비스 로직
+│   ├── mapper/           # MyBatis 매퍼
+│   └── model/            # 데이터 모델
+│
+├── docs/                 # 프로젝트 문서 및 ERD
+└── README.md
 ```
-.
-├── Factory_Dashboard.html        # 메인 대시보드 페이지 (프론트엔드)
-├── view.html                     # 전체화면 3D 뷰어 페이지
-├── src/main/java/com/example/... # Spring Boot 백엔드 (Controller, Service, Mapper, Model)
-├── src/main/resources/schema.sql # DB 스키마
-├── src/main/resources/data.sql   # 초기 데이터
-├── pom.xml                       # Maven 설정
-└── README.md                     # 프로젝트 소개 문서
+🔎 전체 구조와 상세 설명은 [아키텍처 문서](./docs/architecture.md)에서 확인할 수 있습니다.
 
-```
+---
 
 ## 🤝 기여하기 (Contributing)
 
