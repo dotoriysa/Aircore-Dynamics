@@ -12,18 +12,28 @@ public class MachineStatusData {
     private LocalDateTime timestamp;
     private String pmId;
     private Integer status;
+    private String errorCode;  // 추가된 필드
 
     // 기본 생성자
     public MachineStatusData() {
     }
 
-    // 모든 필드를 포함한 생성자 (id 제외)
+    // 기본 필드 생성자 (id 제외)
     public MachineStatusData(LocalDateTime timestamp, String pmId, Integer status) {
         this.timestamp = timestamp;
         this.pmId = pmId;
         this.status = status;
     }
 
+    // 전체 필드 포함 생성자 (id 제외)
+    public MachineStatusData(LocalDateTime timestamp, String pmId, Integer status, String errorCode) {
+        this.timestamp = timestamp;
+        this.pmId = pmId;
+        this.status = status;
+        this.errorCode = errorCode;
+    }
+
+    // Getter/Setter 메서드들
     public Integer getId() {
         return id;
     }
@@ -54,5 +64,13 @@ public class MachineStatusData {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public String getErrorCode() {  // 추가
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {  // 추가
+        this.errorCode = errorCode;
     }
 }

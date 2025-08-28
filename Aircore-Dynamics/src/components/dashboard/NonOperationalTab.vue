@@ -47,6 +47,11 @@
         </div>
       </div>
     </div>
+
+    <!-- 로딩 상태 표시 -->
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loading-spinner">로딩 중...</div>
+    </div>
   </div>
 </template>
 
@@ -58,9 +63,10 @@ const nonOperationalMachines = ref([]);
 const isModalVisible = ref(false);
 const selectedMachine = ref(null);
 const selectedErrorCode = ref('');
+const isLoading = ref(false);
 let apiInterval;
 
-// 샘플 오류 코드 목록 (실제로는 API 또는 설정 파일에서 가져올 수 있습니다)
+// 오류 코드 목록
 const errorCodes = ref([
   { code: 'TEMP_HIGH', label: '고온 경고' },
   { code: 'SENSOR_ERROR', label: '센서 오류' },
@@ -71,23 +77,26 @@ const errorCodes = ref([
 
 // --- Methods ---
 
-// 비가동 장비 목록을 가져오는 API 호출 함수 (현재는 샘플 데이터 사용)
+// 비가동 장비 목록을 가져오는 API 호출 함수
 async function fetchNonOperationalMachines() {
-  // try {
-  //   const response = await fetch('/api/non-operational/machines');
-  //   if (!response.ok) throw new Error('Failed to fetch data');
-  //   const data = await response.json();
-  //   nonOperationalMachines.value = data;
-  // } catch (error) {
-  //   console.error(error);
-  
-    // API가 없으므로 샘플 데이터로 대체합니다.
-    nonOperationalMachines.value = [
-      { processName: "주조", statusText: "정지", lastUpdate: "2025-08-28T10:15:30", errorCode: null, pmId: "PM001", machineName: "주조기1", status: 0 },
-      { processName: "가공", statusText: "정지", lastUpdate: "2025-08-28T11:05:10", errorCode: null, pmId: "PM005", machineName: "가공기2", status: 0 },
-      { processName: "검사", statusText: "정지", lastUpdate: "2025-08-28T09:45:00", errorCode: null, pmId: "PM006", machineName: "검사장비", status: 0 }
-    ];
-  // }
+  try {
+    isLoading.value = true;
+    const response = await fetch('/api/non-operational/machines');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    nonOperationalMachines.value = data;
+  } catch (error) {
+    console.error('비가동 장비 목록 조회 실패:', error);
+    // 에러 발생 시 사용자에게 알림
+    alert(`데이터를 불러오는데 실패했습니다: ${error.message}`);
+    
+    // 필요에 따라 기본값으로 대체하거나 빈 배열 유지
+    nonOperationalMachines.value = [];
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 // 유지보수 등록 모달 열기
@@ -111,46 +120,65 @@ async function setMaintenance(pmId, errorCode) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pmId, errorCode })
     });
-    if (!response.ok) throw new Error('Server responded with an error');
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Server error: ${response.status} - ${errorText}`);
+    }
+    
     const data = await response.json();
     console.log('Maintenance set successfully:', data);
-    // 성공 시 UI에 피드백을 줄 수 있습니다 (예: alert, toast)
+    
+    // 성공 시 UI에 피드백
     alert(`${pmId} 장비의 유지보수 코드(${errorCode})가 성공적으로 등록되었습니다.`);
   } catch (error) {
     console.error('Failed to set maintenance:', error);
     alert(`유지보수 등록에 실패했습니다: ${error.message}`);
+    throw error; // 상위에서 처리할 수 있도록 에러 재발생
   }
 }
 
 // '확인' 버튼 클릭 시 실행
-function submitMaintenance() {
+async function submitMaintenance() {
   if (!selectedErrorCode.value) {
     alert('오류 코드를 선택해주세요.');
     return;
   }
-  setMaintenance(selectedMachine.value.pmId, selectedErrorCode.value);
-  closeMaintenanceModal();
-  // 목록을 새로고침하여 변경사항을 반영할 수 있습니다.
-  fetchNonOperationalMachines();
+  
+  try {
+    await setMaintenance(selectedMachine.value.pmId, selectedErrorCode.value);
+    closeMaintenanceModal();
+    // 목록을 새로고침하여 변경사항을 반영
+    await fetchNonOperationalMachines();
+  } catch (error) {
+    // 에러가 발생해도 모달은 열린 상태 유지하여 사용자가 재시도할 수 있게 함
+    console.error('유지보수 등록 중 오류 발생:', error);
+  }
 }
 
 // 날짜/시간 포맷팅 유틸리티
 function formatDateTime(isoString) {
   if (!isoString) return 'N/A';
-  const date = new Date(isoString);
-  return date.toLocaleString('ko-KR');
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleString('ko-KR');
+  } catch (error) {
+    console.error('날짜 포맷팅 오류:', error);
+    return 'Invalid Date';
+  }
 }
 
-
 // --- Lifecycle Hooks ---
-onMounted(() => {
-  fetchNonOperationalMachines();
+onMounted(async () => {
+  await fetchNonOperationalMachines();
   // 10초마다 데이터 갱신
   apiInterval = setInterval(fetchNonOperationalMachines, 10000);
 });
 
 onUnmounted(() => {
-  clearInterval(apiInterval);
+  if (apiInterval) {
+    clearInterval(apiInterval);
+  }
 });
 
 </script>
@@ -274,5 +302,27 @@ onUnmounted(() => {
 
 .cancel-btn:hover {
   background-color: #616e78;
+}
+
+/* Loading Styles */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  background: #2c3e50;
+  color: #4dd0e1;
+  padding: 2rem;
+  border-radius: 8px;
+  font-weight: bold;
 }
 </style>

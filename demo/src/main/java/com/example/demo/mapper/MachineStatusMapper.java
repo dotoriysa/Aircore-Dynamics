@@ -15,6 +15,13 @@ public interface MachineStatusMapper {
     void insertMachineStatusData(MachineStatusData machineStatusData);
 
     /**
+     * 특정 장비의 상태를 점검 상태(2)로 업데이트하고 오류 내용을 기록합니다.
+     * @param pmId 장비 ID
+     * @param errorCode 오류 내용
+     */
+    void updateMachineStatusToMaintenance(@Param("pmId") String pmId, @Param("errorCode") String errorCode);
+
+    /**
      * 특정 장비의 가장 최근 가동 상태 데이터를 조회합니다.
      * @param pmId 조회할 장비 ID
      * @return 최신 장비 가동 상태 객체
@@ -27,4 +34,6 @@ public interface MachineStatusMapper {
      * @return 장비 가동 상태 데이터 목록
      */
     List<MachineStatusData> selectAllMachineStatusRecords(@Param("pmId") String pmId);
+
+
 }

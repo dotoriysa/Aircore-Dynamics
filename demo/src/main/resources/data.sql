@@ -29,45 +29,24 @@ end_time = VALUES(end_time),
 description = VALUES(description);
 
 -- ========================================
--- 2. 환경 데이터 샘플
+-- 2. 환경 데이터 샘플 (오전 9시 이전으로 수정)
 -- ========================================
 INSERT IGNORE INTO environment_data (timestamp, temperature, humidity) VALUES
 (CONCAT(CURDATE(), ' 06:00:00'), 22.5, 45.2),
 (CONCAT(CURDATE(), ' 07:00:00'), 24.6, 48.3),
-(CONCAT(CURDATE(), ' 08:00:00'), 26.2, 51.2),
-(CONCAT(CURDATE(), ' 09:00:00'), 27.1, 52.8),
-(CONCAT(CURDATE(), ' 10:00:00'), 28.3, 54.5),
-(CONCAT(CURDATE(), ' 11:00:00'), 29.2, 56.1),
-(CONCAT(CURDATE(), ' 12:00:00'), 30.1, 58.3),
-(CONCAT(CURDATE(), ' 13:00:00'), 29.8, 57.9),
-(CONCAT(CURDATE(), ' 14:00:00'), 29.5, 57.2),
-(CONCAT(CURDATE(), ' 15:00:00'), 29.1, 56.8),
-(CONCAT(CURDATE(), ' 16:00:00'), 28.7, 55.9),
-(CONCAT(CURDATE(), ' 17:00:00'), 28.2, 55.1),
-(CONCAT(CURDATE(), ' 18:00:00'), 27.8, 54.3),
-(CONCAT(CURDATE(), ' 19:00:00'), 27.3, 53.7),
-(CONCAT(CURDATE(), ' 20:00:00'), 26.9, 52.9),
-(CONCAT(CURDATE(), ' 21:00:00'), 26.4, 52.1),
-(CONCAT(CURDATE(), ' 22:00:00'), 25.8, 51.3),
-(CONCAT(CURDATE(), ' 23:00:00'), 25.2, 50.5);
+(CONCAT(CURDATE(), ' 08:00:00'), 26.2, 51.2);
 
 -- ========================================
--- 3. 생산 실적 샘플 데이터
+-- 3. 생산 실적 샘플 데이터 (오전 9시 이전으로 수정)
 -- ========================================
 INSERT IGNORE INTO production_data (timestamp, pm_id, completed_quantity, cycle_time, quality_grade) VALUES
 -- PM001 주조기1
 (CONCAT(CURDATE(), ' 07:15:00'), 'PM001', 1, 3720, 'A'),
 (CONCAT(CURDATE(), ' 08:22:00'), 'PM001', 1, 3650, 'A'),
-(CONCAT(CURDATE(), ' 09:35:00'), 'PM001', 1, 3580, 'B'),
-(CONCAT(CURDATE(), ' 10:48:00'), 'PM001', 1, 3690, 'NG'),
-(CONCAT(CURDATE(), ' 12:05:00'), 'PM001', 1, 3750, 'A'),
-(CONCAT(CURDATE(), ' 14:12:00'), 'PM001', 1, 3620, 'A'),
 
 -- PM002 주조기2
 (CONCAT(CURDATE(), ' 07:20:00'), 'PM002', 1, 3680, 'A'),
 (CONCAT(CURDATE(), ' 08:25:00'), 'PM002', 1, 3590, 'A'),
-(CONCAT(CURDATE(), ' 09:42:00'), 'PM002', 1, 3720, 'A'),
-(CONCAT(CURDATE(), ' 10:55:00'), 'PM002', 1, 3640, 'B'),
 
 -- PM004 가공기1
 (CONCAT(CURDATE(), ' 06:35:00'), 'PM004', 2, 1750, 'A'),
@@ -147,8 +126,10 @@ INSERT IGNORE INTO vibration_data (timestamp, pm_id, vibration_x, vibration_y, v
 
 
 -- ========================================
--- 6. 머신 가동상태 데이터 샘플
+-- 6. 머신 가동상태 데이터 샘플 (수정)
+-- 6시 기준 모든 머신 상태를 '1' (가동)으로 초기화
 -- ========================================
+
 INSERT IGNORE INTO machine_status_data (timestamp, pm_id, status, status_duration, error_code) VALUES
 (CONCAT(CURDATE(), ' 06:00:00'), 'PM001', 1, 0, NULL),
 (CONCAT(CURDATE(), ' 06:00:00'), 'PM002', 1, 0, NULL),
@@ -157,77 +138,7 @@ INSERT IGNORE INTO machine_status_data (timestamp, pm_id, status, status_duratio
 (CONCAT(CURDATE(), ' 06:00:00'), 'PM005', 1, 0, NULL),
 (CONCAT(CURDATE(), ' 06:00:00'), 'PM006', 1, 0, NULL),
 (CONCAT(CURDATE(), ' 06:00:00'), 'PM007', 1, 0, NULL),
-(CONCAT(CURDATE(), ' 06:00:00'), 'PM008', 1, 0, NULL),
-(CONCAT(CURDATE(), ' 06:18:23'), 'PM006', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 06:35:41'), 'PM002', 0, 280, 'MAINT001'),
-(CONCAT(CURDATE(), ' 06:47:05'), 'PM005', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 07:11:15'), 'PM004', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 07:23:59'), 'PM006', 1, 550, NULL),
-(CONCAT(CURDATE(), ' 07:44:12'), 'PM008', 0, 690, 'MAINT001'),
-(CONCAT(CURDATE(), ' 08:05:00'), 'PM003', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 08:16:34'), 'PM005', 1, 910, NULL),
-(CONCAT(CURDATE(), ' 08:30:11'), 'PM007', 0, 820, 'MAINT001'),
-(CONCAT(CURDATE(), ' 08:52:45'), 'PM002', 1, 1050, NULL),
-(CONCAT(CURDATE(), ' 09:07:33'), 'PM004', 1, 1100, NULL),
-(CONCAT(CURDATE(), ' 09:25:50'), 'PM001', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 09:41:09'), 'PM008', 1, 1340, NULL),
-(CONCAT(CURDATE(), ' 09:55:27'), 'PM003', 1, 1280, NULL),
-(CONCAT(CURDATE(), ' 10:15:45'), 'PM006', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 10:32:01'), 'PM005', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 10:48:19'), 'PM002', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 11:05:30'), 'PM007', 1, 1550, NULL),
-(CONCAT(CURDATE(), ' 11:24:44'), 'PM001', 1, 1690, NULL),
-(CONCAT(CURDATE(), ' 11:40:59'), 'PM004', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 11:58:10'), 'PM003', 0, 1850, 'MAINT001'),
-(CONCAT(CURDATE(), ' 12:15:37'), 'PM006', 1, 1920, NULL),
-(CONCAT(CURDATE(), ' 12:30:00'), 'PM008', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 12:45:11'), 'PM005', 1, 2030, NULL),
-(CONCAT(CURDATE(), ' 13:02:29'), 'PM002', 1, 2150, NULL),
-(CONCAT(CURDATE(), ' 13:20:45'), 'PM007', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 13:35:10'), 'PM001', 0, 2280, 'MAINT001'),
-(CONCAT(CURDATE(), ' 13:51:22'), 'PM004', 1, 2350, NULL),
-(CONCAT(CURDATE(), ' 14:08:33'), 'PM003', 1, 2410, NULL),
-(CONCAT(CURDATE(), ' 14:25:47'), 'PM006', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 14:40:01'), 'PM008', 1, 2560, NULL),
-(CONCAT(CURDATE(), ' 14:57:15'), 'PM005', 0, 2690, 'MAINT001'),
-(CONCAT(CURDATE(), ' 15:15:31'), 'PM002', 0, 2810, 'MAINT001'),
-(CONCAT(CURDATE(), ' 15:30:44'), 'PM007', 1, 2900, NULL),
-(CONCAT(CURDATE(), ' 15:48:55'), 'PM001', 1, 3050, NULL),
-(CONCAT(CURDATE(), ' 16:05:07'), 'PM004', 0, 3180, 'MAINT001'),
-(CONCAT(CURDATE(), ' 16:20:19'), 'PM003', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 16:38:32'), 'PM006', 1, 3250, NULL),
-(CONCAT(CURDATE(), ' 16:55:41'), 'PM008', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 17:10:53'), 'PM005', 1, 3380, NULL),
-(CONCAT(CURDATE(), ' 17:28:09'), 'PM002', 1, 3450, NULL),
-(CONCAT(CURDATE(), ' 17:45:22'), 'PM007', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 18:03:36'), 'PM001', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 18:20:50'), 'PM004', 1, 3600, NULL),
-(CONCAT(CURDATE(), ' 18:38:05'), 'PM003', 1, 3690, NULL),
-(CONCAT(CURDATE(), ' 18:55:18'), 'PM006', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 19:10:30'), 'PM008', 1, 3750, NULL),
-(CONCAT(CURDATE(), ' 19:28:44'), 'PM005', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 19:45:59'), 'PM002', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 20:03:13'), 'PM007', 1, 3900, NULL),
-(CONCAT(CURDATE(), ' 20:20:25'), 'PM001', 1, 3970, NULL),
-(CONCAT(CURDATE(), ' 20:38:39'), 'PM004', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 20:55:54'), 'PM003', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 21:10:08'), 'PM006', 1, 4050, NULL),
-(CONCAT(CURDATE(), ' 21:28:22'), 'PM008', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 21:45:36'), 'PM005', 1, 4180, NULL),
-(CONCAT(CURDATE(), ' 22:03:51'), 'PM002', 1, 4250, NULL),
-(CONCAT(CURDATE(), ' 22:20:06'), 'PM007', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 22:38:20'), 'PM001', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 22:55:35'), 'PM004', 1, 4320, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM001', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM002', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM003', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM004', 0, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM005', 1, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM006', 1, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM007', 1, 0, NULL),
-(CONCAT(CURDATE(), ' 23:00:00'), 'PM008', 1, 0, NULL);
-
-
+(CONCAT(CURDATE(), ' 06:00:00'), 'PM008', 1, 0, NULL);
 -- 데이터 삽입 완료 확인
 
 SELECT 'Smart Factory sample data inserted successfully!' as completion_message;
