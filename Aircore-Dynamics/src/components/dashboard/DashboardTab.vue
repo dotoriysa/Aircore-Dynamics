@@ -80,10 +80,8 @@
         <span>불량률</span>
         <span class="metric-value" style="color: #e74c3c;">{{ apiData.defect_rate }}%</span>
       </div>
-        <div style="margin-top: 1rem; font-size: 0.8rem; color: #7f8c8d;">
-          • 기공: 1.8%<br>
-          • 치수오차: 0.9%<br>
-          • 조립불량: 0.5%
+      <div class="quality-chart">
+        <v-chart class="chart" :option="qualityChartOption" autoresize />
       </div>
     </div>
     <div class="card">
@@ -156,10 +154,9 @@
 import { ref, reactive, onMounted, onUnmounted, computed, provide } from 'vue';
 import { RouterLink } from 'vue-router';
 import ThreeViewer from '../ThreeViewer.vue';
-// ✨✨✨ --- 1. ECharts 관련 라이브러리 import --- ✨✨✨
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
-import { LineChart } from 'echarts/charts';
+import { LineChart, PieChart } from 'echarts/charts';
 import {
   TitleComponent,
   TooltipComponent,
@@ -169,11 +166,10 @@ import {
 import VChart, { THEME_KEY } from 'vue-echarts';
 import { graphic } from 'echarts';
 
-
-// ✨✨✨ --- 2. ECharts 컴포넌트 등록 및 다크 테마 설정 --- ✨✨✨
 use([
   CanvasRenderer,
   LineChart,
+  PieChart,
   TitleComponent,
   TooltipComponent,
   GridComponent,
@@ -204,7 +200,6 @@ const apiData = reactive({
   normal_rate: 0,
 });
 
-// ✨✨✨ --- 3. ECharts 옵션 객체(ref) 생성 --- ✨✨✨
 const chartOption = ref({
   backgroundColor: 'transparent',
   grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
@@ -212,7 +207,7 @@ const chartOption = ref({
   xAxis: {
     type: 'category',
     boundaryGap: false,
-    data: [], // 데이터는 onMounted에서 채워집니다.
+    data: [],
     axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.2)' } }
   },
   yAxis: {
@@ -226,7 +221,7 @@ const chartOption = ref({
       type: 'line',
       smooth: true,
       showSymbol: false,
-      data: [], // 데이터는 onMounted에서 채워집니다.
+      data: [],
       lineStyle: {
         width: 2,
         color: '#4dd0e1'
@@ -241,12 +236,61 @@ const chartOption = ref({
   ]
 });
 
-// 차트에 샘플 데이터를 채우는 함수
+const qualityChartOption = ref({});
+
 function updateChartData() {
   const hours = ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00'];
   const productionData = [85, 120, 155, 140, 160, 152, 165];
   chartOption.value.xAxis.data = hours;
   chartOption.value.series[0].data = productionData;
+}
+
+function setupQualityChart() {
+  qualityChartOption.value = {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {d}%'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      top: 'center',
+      textStyle: {
+        color: '#ccc'
+      }
+    },
+    series: [
+      {
+        name: '불량 원인',
+        type: 'pie',
+        radius: ['50%', '70%'],
+        center: ['65%', '50%'],
+        avoidLabelOverlap: false,
+        label: {
+          show: false,
+          position: 'center'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: '16',
+            fontWeight: 'bold',
+            formatter: '{d}%'
+          }
+        },
+        labelLine: {
+          show: false
+        },
+        data: [
+          { value: 1.8, name: '기공' },
+          { value: 0.9, name: '치수오차' },
+          { value: 0.5, name: '조립불량' }
+        ],
+        color: ['#e74c3c', '#f39c12', '#3498db']
+      }
+    ]
+  };
 }
 
 
@@ -364,8 +408,8 @@ onMounted(() => {
   updateAllMachineStatuses();
   statusInterval = setInterval(updateAllMachineStatuses, 3000);
 
-  // ✨✨✨ --- 4. 컴포넌트 마운트 시 차트 데이터 업데이트 --- ✨✨✨
   updateChartData();
+  setupQualityChart();
 });
 
 onUnmounted(() => { 
@@ -375,14 +419,17 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* (기존 스타일 대부분 유지) */
 .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem}.card{background:rgba(28,49,58,.85);backdrop-filter:blur(10px);border-radius:16px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,.3);border:1px solid rgba(77,208,225,.2);transition:transform .3s ease,box-shadow .3s ease}.card:hover{transform:translateY(-5px);box-shadow:0 12px 40px rgba(0,0,0,.4)}.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid hsla(0,0%,100%,.1)}.card-title{font-size:1.1rem;font-weight:600;color:#f5f5f5}.metric{display:flex;justify-content:space-between;align-items:center;margin:.5rem 0;padding:.5rem;background:rgba(0,0,0,.2);border-radius:8px}.metric-value{font-size:1.2rem;font-weight:700;color:#4dd0e1}.progress-bar{width:100%;height:8px;background:rgba(0,0,0,.3);border-radius:4px;overflow:hidden;margin:.5rem 0}.progress-fill{height:100%;background:linear-gradient(90deg,#0097a7,#4dd0e1);border-radius:4px;transition:width .3s ease}.factory-container{grid-column:span 2;min-height:450px;display:flex;flex-direction:column}.viewer-wrapper{flex-grow:1;position:relative;overflow:hidden;margin-top:.5rem}.factory-controls{display:flex;gap:.5rem}.factory-btn{padding:.5rem 1rem;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;text-decoration:none}
 .machine-info-panel{position:absolute;bottom:1rem;left:1rem;background:rgba(0,0,0,.85);backdrop-filter:blur(5px);color:#fff;padding:1rem;border-radius:8px;font-size:.9rem;width:280px;border:1px solid rgba(77,208,225,.2);transition:opacity .3s ease}.machine-info-panel.hidden{opacity:0;pointer-events:none}
 @media (max-width:1200px){.factory-container{grid-column:span 1}}
 .status-indicator{width:12px;height:12px;border-radius:50%;animation:pulse 2s infinite}.status-good{background-color:#27ae60}.status-warning{background-color:#f39c12}.status-danger{background-color:#e74c3c}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(39,174,96,.4)}70%{box-shadow:0 0 0 10px transparent}to{box-shadow:0 0 0 0 transparent}}.equipment-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;margin-top:1rem}.equipment-item{text-align:center;padding:1rem;background:rgba(0,0,0,.2);border-radius:8px;transition:transform .3s ease;cursor:pointer}.equipment-item:hover{transform:scale(1.05)}.equipment-icon{font-size:2rem;margin-bottom:.5rem}.alert-box{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;padding:1rem;border-radius:8px;margin:.5rem 0;display:flex;align-items:center;gap:.5rem;animation:alertPulse 2s infinite}@keyframes alertPulse{0%,to{opacity:1}50%{opacity:.8}}
 
 .production-chart {
-  height: 150px; /* 기존 120px에서 150px로 변경하여 차트 영역 확장 */
+  height: 150px;
+  margin-top: 1rem;
+}
+.quality-chart {
+  height: 200px;
   margin-top: 1rem;
 }
 .chart {
