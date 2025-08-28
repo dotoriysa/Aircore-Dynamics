@@ -35,5 +35,10 @@ public interface MachineStatusMapper {
      */
     List<MachineStatusData> selectAllMachineStatusRecords(@Param("pmId") String pmId);
 
-
+    /**
+     * 특정 장비의 상태를 변경합니다.
+     * @param pmId 장비 ID
+     * @param status 새로운 상태 (0: 정지, 1: 가동, 2: 점검)
+     */
+    void updateMachineStatus(@Param("pmId") String pmId, @Param("status") int status);
 }

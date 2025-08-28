@@ -38,6 +38,23 @@
         ]]>
     </insert>
 
+    <!-- 특정 장비의 상태를 변경 -->
+    <insert id="updateMachineStatus">
+        <![CDATA[
+    INSERT INTO machine_status_data (
+        timestamp,
+        pm_id,
+        status,
+        error_code
+    ) VALUES (
+        NOW(),
+        #{pmId},
+        #{status},
+        NULL
+    )
+    ]]>
+    </insert>
+
     <select id="selectLatestMachineStatus" resultType="com.example.demo.model.MachineStatusData">
         <![CDATA[
         SELECT

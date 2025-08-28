@@ -44,7 +44,7 @@ public class MachineStatusService {
                 System.out.println("가동 중인 머신 발견! 정지 확률 체크...");
 
                 // 테스트를 위해 확률을 높임 (50% 확률로 테스트)
-                if (random.nextInt(100) < 50) {
+                if (random.nextInt(100) < 10) {
                     MachineStatusData newStatusData = new MachineStatusData();
                     newStatusData.setTimestamp(LocalDateTime.now());
                     newStatusData.setPmId(selectedPmId);

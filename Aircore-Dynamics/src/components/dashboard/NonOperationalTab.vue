@@ -110,8 +110,10 @@ async function fetchNonOperationalMachines() {
     }
     const data = await response.json();
     
+    // 새로운 배열로 완전히 교체
+    const updatedMachines = [];
+    
     data.forEach(newMachine => {
-        const existingMachine = nonOperationalMachines.value.find(m => m.pmId === newMachine.pmId);
         const statusClass = getStatusClass(newMachine);
         
         // errorCode가 있으면 해당 label로 statusText 업데이트
@@ -119,22 +121,15 @@ async function fetchNonOperationalMachines() {
           ? getErrorLabel(newMachine.errorCode) 
           : newMachine.statusText;
         
-        if (!existingMachine) {
-            nonOperationalMachines.value.push({
-                ...newMachine,
-                statusClass: statusClass,
-                statusText: statusText
-            });
-        } else {
-            if (existingMachine.lastUpdate !== newMachine.lastUpdate) {
-                Object.assign(existingMachine, {
-                    ...newMachine,
-                    statusClass: statusClass,
-                    statusText: statusText
-                });
-            }
-        }
+        updatedMachines.push({
+            ...newMachine,
+            statusClass: statusClass,
+            statusText: statusText
+        });
     });
+    
+    // 기존 배열을 새로운 데이터로 완전히 교체
+    nonOperationalMachines.value = updatedMachines;
 
   } catch (error) {
     console.error('비가동 장비 목록 조회 실패:', error);
@@ -176,11 +171,9 @@ async function setMaintenance(pmId, errorCode) {
     const data = await response.json();
     console.log('Maintenance set successfully:', data);
     
-    alert(`${pmId} 장비의 유지보수 코드(${errorCode})가 성공적으로 등록되었습니다.`);
     return true;
   } catch (error) {
     console.error('Failed to set maintenance:', error);
-    alert(`유지보수 등록에 실패했습니다: ${error.message}`);
     throw error;
   }
 }
@@ -205,7 +198,7 @@ async function submitMaintenance() {
 
     if (machineToUpdate && selectedError) {
       machineToUpdate.errorCode = selectedErrorCode.value;
-      machineToUpdate.statusText = '점검'; // 서버에서 오는 statusText와 동일하게
+      machineToUpdate.statusText = selectedError.label; // 에러코드의 label 표시
       machineToUpdate.statusClass = 'status-warning';
     }
 

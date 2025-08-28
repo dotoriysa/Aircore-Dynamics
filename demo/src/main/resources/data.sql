@@ -131,7 +131,7 @@ INSERT IGNORE INTO vibration_data (timestamp, pm_id, vibration_x, vibration_y, v
 -- ========================================
 
 INSERT IGNORE INTO machine_status_data (timestamp, pm_id, status, status_duration, error_code) VALUES
-(CONCAT(CURDATE(), ' 06:00:00'), 'PM001', 1, 0, NULL),
+(CONCAT(CURDATE(), ' 06:00:00'), 'PM001', 0, 0, NULL),
 (CONCAT(CURDATE(), ' 06:00:00'), 'PM002', 1, 0, NULL),
 (CONCAT(CURDATE(), ' 06:00:00'), 'PM003', 1, 0, NULL),
 (CONCAT(CURDATE(), ' 06:00:00'), 'PM004', 1, 0, NULL),
