@@ -429,7 +429,6 @@ function updateTowerLamp(lamp, status) {
 
   if (status === "running" && lights.green) {
     lights.green.material.emissive.setHex(0x00ff00);
-  } else if (status === 'idle' && lights.yellow) {
   } else if (status === "idle" && lights.yellow) {
     lights.yellow.material.emissive.setHex(0xffff00);
   } else if (status === "stopped" && lights.red) {

@@ -212,13 +212,38 @@ const processMachineInfo = [
     {PM_ID: 'PM008', Process_Name: '포장', Machine_Name: '포장기', Standard_Cycle_Time: 600, Description: '자동 포장 및 밀봉 장비'}
 ];
 
-function updateAllMachineStatuses() {
-  const statuses = ['running', 'idle', 'stopped'];
+async function updateAllMachineStatuses() {
   const newStatuses = {};
-  processMachineInfo.forEach(machine => {
-    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    newStatuses[machine.PM_ID] = { status: randomStatus };
+  
+  // 모든 장비의 상태를 병렬로 조회하기 위해 Promise 배열 생성
+  const statusPromises = processMachineInfo.map(async (machine) => {
+    try {
+      const response = await fetch(`/api/machine-dashboard/${machine.PM_ID}`);
+      if (!response.ok) {
+        console.error(`Error fetching status for ${machine.PM_ID}: ${response.statusText}`);
+        return { pmId: machine.PM_ID, status: 'stopped' }; // 에러 발생 시 '멈춤'으로 처리
+      }
+      const data = await response.json();
+      
+      // 백엔드 상태(1: 가동, 0: 멈춤)를 프론트엔드 상태('running', 'stopped')로 변환
+      const frontendStatus = data.status === 1 ? 'running' : 'stopped';
+      
+      return { pmId: machine.PM_ID, status: frontendStatus };
+    } catch (error) {
+      console.error(`Failed to fetch machine status for ${machine.PM_ID}:`, error);
+      return { pmId: machine.PM_ID, status: 'stopped' }; // 예외 발생 시 '멈춤'으로 처리
+    }
   });
+
+  // 모든 API 호출이 완료될 때까지 대기
+  const resolvedStatuses = await Promise.all(statusPromises);
+
+  // 조회된 상태를 ThreeViewer가 사용하는 형식으로 변환
+  resolvedStatuses.forEach(item => {
+    newStatuses[item.pmId] = { status: item.status };
+  });
+
+  // 상태 업데이트 (이 변경이 ThreeViewer에 자동으로 반영됨)
   allMachineStatuses.value = newStatuses;
 }
 

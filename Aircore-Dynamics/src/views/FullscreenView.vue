@@ -22,19 +22,19 @@
       <div class="status-title">🏭 공장 현황</div>
       <div class="status-item">
         <span>전체 장비:</span>
-        <span>8대</span>
+        <span>{{ processMachineInfo.length }}대</span>
       </div>
        <div class="status-item">
         <span>가동 중:</span>
-        <span style="color: #27ae60;">7대</span>
+        <span style="color: #27ae60;">{{ runningCount }}대</span>
       </div>
       <div class="status-item">
         <span>주의 필요:</span>
-        <span style="color: #f39c12;">1대</span>
+        <span style="color: #f39c12;">0대</span>
       </div>
       <div class="status-item">
         <span>정비 중:</span>
-        <span style="color: #e74c3c;">0대</span>
+        <span style="color: #e74c3c;">{{ stoppedCount }}대</span>
       </div>
 
       <div class="selected-equipment-section">
@@ -48,6 +48,12 @@
           <div class="status-item"><span>공정:</span> <span>{{ selectedEquipment.Process_Name }}</span></div>
           
           <div v-if="selectedMachineRealtimeData" class="realtime-data-section">
+            <div class="status-item">
+              <span>현재 상태</span>
+              <span class="metric-value" :class="selectedMachineCurrentStatus.class">
+                {{ selectedMachineCurrentStatus.text }}
+              </span>
+            </div>
             <div class="status-item"><span>시간당 생산량</span> <span class="metric-value">{{ selectedMachineRealtimeData.hourly_production }}개</span></div>
             <div class="status-item"><span>가동률</span> <span class="metric-value">{{ selectedMachineRealtimeData.operation_rate }}%</span></div>
             <div class="status-item"><span>전력량</span> <span class="metric-value">{{ selectedMachineRealtimeData.power_consumption }}kWh</span></div>
@@ -95,6 +101,27 @@ const selectedMachineRealtimeData = ref(null);
 const allMachineStatuses = ref({});
 let statusInterval;
 
+// 실시간 상태 데이터를 기반으로 가동/정비 중인 장비 수를 계산합니다.
+const runningCount = computed(() => 
+  Object.values(allMachineStatuses.value).filter(s => s.status === 'running').length
+);
+const stoppedCount = computed(() => 
+  Object.values(allMachineStatuses.value).filter(s => s.status === 'stopped').length
+);
+
+// 선택된 장비의 현재 상태를 텍스트와 CSS 클래스로 변환합니다.
+const selectedMachineCurrentStatus = computed(() => {
+  if (!selectedEquipment.value || !allMachineStatuses.value[selectedEquipment.value.PM_ID]) {
+    return { text: '확인 중...', class: 'status-unknown' };
+  }
+  const status = allMachineStatuses.value[selectedEquipment.value.PM_ID].status;
+  if (status === 'running') {
+    return { text: '가동 중', class: 'status-running' };
+  } else {
+    return { text: '멈춤', class: 'status-stopped' };
+  }
+});
+
 const processMachineInfo = [
     {PM_ID: 'PM001', Process_Name: '주조', Machine_Name: '주조기1', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 1호기'},
     {PM_ID: 'PM002', Process_Name: '주조', Machine_Name: '주조기2', Standard_Cycle_Time: 3600, Description: '금속 용해 및 주조 장비 2호기'},
@@ -115,19 +142,35 @@ function handleToggleAnimation() {
   isAnimationRunning.value = running;
 }
 
-// ✨✨✨ --- 추가된 부분 --- ✨✨✨
 function exitFullscreen() {
   window.close();
 }
-// ✨✨✨ --- 여기까지 --- ✨✨✨
 
-function updateAllMachineStatuses() {
-  const statuses = ['running', 'idle', 'stopped'];
+async function updateAllMachineStatuses() {
   const newStatuses = {};
-  processMachineInfo.forEach(machine => {
-    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    newStatuses[machine.PM_ID] = { status: randomStatus };
+  
+  const statusPromises = processMachineInfo.map(async (machine) => {
+    try {
+      const response = await fetch(`/api/machine-dashboard/${machine.PM_ID}`);
+      if (!response.ok) {
+        console.error(`Error fetching status for ${machine.PM_ID}: ${response.statusText}`);
+        return { pmId: machine.PM_ID, status: 'stopped' };
+      }
+      const data = await response.json();
+      const frontendStatus = data.status === 1 ? 'running' : 'stopped';
+      return { pmId: machine.PM_ID, status: frontendStatus };
+    } catch (error) {
+      console.error(`Failed to fetch machine status for ${machine.PM_ID}:`, error);
+      return { pmId: machine.PM_ID, status: 'stopped' };
+    }
   });
+
+  const resolvedStatuses = await Promise.all(statusPromises);
+
+  resolvedStatuses.forEach(item => {
+    newStatuses[item.pmId] = { status: item.status };
+  });
+
   allMachineStatuses.value = newStatuses;
 }
 
@@ -137,9 +180,17 @@ async function updateSelectedEquipment(data) {
 
   if (data) {
     try {
-      const response = await fetch(`/api/machine/status/${data.PM_ID}`);
+      const response = await fetch(`/api/machine-dashboard/${data.PM_ID}`);
       if (!response.ok) throw new Error('Machine data fetch failed');
-      selectedMachineRealtimeData.value = await response.json();
+      
+      const machineData = await response.json();
+      selectedMachineRealtimeData.value = {
+        hourly_production: machineData.dailyProduction || 0,
+        operation_rate: machineData.operationRate || "0.00",
+        power_consumption: machineData.powerConsumption || "0.00",
+        defect_rate: machineData.defectRate || "0.00"
+      };
+
     } catch (error) {
       console.error("Failed to fetch machine status:", error);
       setTimeout(() => {
@@ -223,4 +274,14 @@ onUnmounted(() => {
 .metric-value { font-size: 1rem; color: #4dd0e1; font-weight: 600; }
 .defect-rate { color: #e74c3c; }
 .loading-text { font-size: 0.85rem; color: #f39c12; text-align: center; padding: 1rem 0; }
+
+.metric-value.status-running {
+  color: #27ae60; /* 초록색 */
+}
+.metric-value.status-stopped {
+  color: #e74c3c; /* 빨간색 */
+}
+.metric-value.status-unknown {
+  color: #f39c12; /* 주황색 */
+}
 </style>
