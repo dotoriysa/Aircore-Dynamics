@@ -9,7 +9,7 @@
       >
         <div class="card-header">
           <div class="card-title">{{ machine.machineName }}</div>
-          <div class="status-indicator status-danger"></div>
+          <div :class="['status-indicator', machine.statusClass || 'status-danger']"></div>
         </div>
         <div class="metric">
           <span>공정</span>
@@ -17,10 +17,18 @@
         </div>
         <div class="metric">
           <span>상태</span>
-          <span class="metric-value status-stopped">{{ machine.statusText }}</span>
+          <span 
+            class="metric-value" 
+            :class="{ 
+              'status-stopped': machine.statusClass === 'status-danger' || !machine.statusClass,
+              'status-warning-text': machine.statusClass === 'status-warning'
+            }"
+          >
+            {{ machine.statusText }}
+          </span>
         </div>
         <div class="metric">
-          <span>마지막 업데이트</span>
+          <span>업데이트</span>
           <span class="metric-value">{{ formatDateTime(machine.lastUpdate) }}</span>
         </div>
       </div>
@@ -48,7 +56,6 @@
       </div>
     </div>
 
-    <!-- 로딩 상태 표시 -->
     <div v-if="isLoading" class="loading-overlay">
       <div class="loading-spinner">로딩 중...</div>
     </div>
@@ -80,19 +87,29 @@ const errorCodes = ref([
 // 비가동 장비 목록을 가져오는 API 호출 함수
 async function fetchNonOperationalMachines() {
   try {
-    isLoading.value = true;
     const response = await fetch('/api/non-operational/machines');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    nonOperationalMachines.value = data;
+    
+    data.forEach(newMachine => {
+        const existingMachine = nonOperationalMachines.value.find(m => m.pmId === newMachine.pmId);
+        if (!existingMachine) {
+            nonOperationalMachines.value.push({
+                ...newMachine,
+                statusClass: 'status-danger'
+            });
+        } else {
+            if (existingMachine.lastUpdate !== newMachine.lastUpdate) {
+                Object.assign(existingMachine, newMachine);
+            }
+        }
+    });
+
   } catch (error) {
     console.error('비가동 장비 목록 조회 실패:', error);
-    // 에러 발생 시 사용자에게 알림
     alert(`데이터를 불러오는데 실패했습니다: ${error.message}`);
-    
-    // 필요에 따라 기본값으로 대체하거나 빈 배열 유지
     nonOperationalMachines.value = [];
   } finally {
     isLoading.value = false;
@@ -102,7 +119,7 @@ async function fetchNonOperationalMachines() {
 // 유지보수 등록 모달 열기
 function openMaintenanceModal(machine) {
   selectedMachine.value = machine;
-  selectedErrorCode.value = ''; // 오류코드 선택 초기화
+  selectedErrorCode.value = '';
   isModalVisible.value = true;
 }
 
@@ -129,12 +146,12 @@ async function setMaintenance(pmId, errorCode) {
     const data = await response.json();
     console.log('Maintenance set successfully:', data);
     
-    // 성공 시 UI에 피드백
     alert(`${pmId} 장비의 유지보수 코드(${errorCode})가 성공적으로 등록되었습니다.`);
+    return true;
   } catch (error) {
     console.error('Failed to set maintenance:', error);
     alert(`유지보수 등록에 실패했습니다: ${error.message}`);
-    throw error; // 상위에서 처리할 수 있도록 에러 재발생
+    throw error;
   }
 }
 
@@ -147,21 +164,53 @@ async function submitMaintenance() {
   
   try {
     await setMaintenance(selectedMachine.value.pmId, selectedErrorCode.value);
+    
+    const machineToUpdate = nonOperationalMachines.value.find(
+      m => m.pmId === selectedMachine.value.pmId
+    );
+    const selectedError = errorCodes.value.find(
+      e => e.code === selectedErrorCode.value
+    );
+
+    if (machineToUpdate && selectedError) {
+      machineToUpdate.statusText = selectedError.label;
+      machineToUpdate.statusClass = 'status-warning';
+    }
+
     closeMaintenanceModal();
-    // 목록을 새로고침하여 변경사항을 반영
-    await fetchNonOperationalMachines();
   } catch (error) {
-    // 에러가 발생해도 모달은 열린 상태 유지하여 사용자가 재시도할 수 있게 함
     console.error('유지보수 등록 중 오류 발생:', error);
   }
 }
 
-// 날짜/시간 포맷팅 유틸리티
+// ✨✨✨ --- 날짜/시간 포맷팅 유틸리티 수정 --- ✨✨✨
 function formatDateTime(isoString) {
   if (!isoString) return 'N/A';
   try {
     const date = new Date(isoString);
-    return date.toLocaleString('ko-KR');
+    const fullString = date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+    
+    // ' 오전' 또는 ' 오후' 앞의 공백을 찾아 그 위치를 기준으로 문자열을 나눕니다.
+    let splitIndex = fullString.indexOf(' 오전');
+    if (splitIndex === -1) {
+      splitIndex = fullString.indexOf(' 오후');
+    }
+
+    if (splitIndex > -1) {
+      const datePart = fullString.substring(0, splitIndex);
+      const timePart = fullString.substring(splitIndex + 1); // 공백 다음부터
+      return `${datePart}\n${timePart}`;
+    }
+
+    return fullString; // '오전/오후'를 찾지 못할 경우 원래 형식으로 반환
   } catch (error) {
     console.error('날짜 포맷팅 오류:', error);
     return 'Invalid Date';
@@ -170,8 +219,8 @@ function formatDateTime(isoString) {
 
 // --- Lifecycle Hooks ---
 onMounted(async () => {
+  isLoading.value = true;
   await fetchNonOperationalMachines();
-  // 10초마다 데이터 갱신
   apiInterval = setInterval(fetchNonOperationalMachines, 10000);
 });
 
@@ -184,6 +233,24 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.metric > span:first-of-type {
+  white-space: nowrap;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+.metric .metric-value {
+  text-align: right;
+  flex-grow: 1;
+  word-break: keep-all;
+  white-space: pre-line; 
+  line-height: 1.4;
+}
+
 .non-op-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -202,6 +269,9 @@ onUnmounted(() => {
 
 .metric-value.status-stopped {
   color: #e74c3c;
+}
+.metric-value.status-warning-text {
+  color: #f39c12;
 }
 
 /* Modal Styles */
@@ -325,4 +395,6 @@ onUnmounted(() => {
   border-radius: 8px;
   font-weight: bold;
 }
+
+.status-indicator{width:12px;height:12px;border-radius:50%;animation:pulse 2s infinite}.status-good{background-color:#27ae60}.status-warning{background-color:#f39c12}.status-danger{background-color:#e74c3c}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(39,174,96,.4)}70%{box-shadow:0 0 0 10px transparent}to{box-shadow:0 0 0 0 transparent}}
 </style>

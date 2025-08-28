@@ -123,7 +123,7 @@
       </div>
       <div class="metric">
         <span>습도</span>
-        <span class="metric-value">{{ apiData.factory_humidity }}</span>
+        <span class="metric-value">{{ apiData.factory_humidity }}%</span>
       </div>
         <div class="metric">
         <span>총 전력 소비량</span>
@@ -315,6 +315,8 @@ async function fetchData() {
     Object.assign(apiData, data);
     apiData.total_operation_rate = parseFloat(data.total_operation_rate);
     apiData.daily_total_production = parseInt(data.daily_total_production);
+    // 아래 코드를 추가하여 습도 값을 소수점 두 자리로 변환합니다.
+    apiData.factory_humidity = parseFloat(data.factory_humidity || 0).toFixed(2);
     apiData.total_power_consumption = parseFloat(data.total_power_consumption || 0).toFixed(2);
   } catch (error) {
     console.error("Failed to fetch dashboard summary:", error);
