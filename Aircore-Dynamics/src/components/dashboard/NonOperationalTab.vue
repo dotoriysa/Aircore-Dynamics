@@ -84,6 +84,23 @@ const errorCodes = ref([
 
 // --- Methods ---
 
+// 상태 클래스를 결정하는 함수
+function getStatusClass(machine) {
+  // errorCode가 있으면 점검 중 (노란색), 없으면 정지 (빨간색)
+  if (machine.errorCode) {
+    return 'status-warning';
+  } else {
+    return 'status-danger';
+  }
+}
+
+// errorCode에 해당하는 label을 찾는 함수
+function getErrorLabel(errorCode) {
+  if (!errorCode) return null;
+  const error = errorCodes.value.find(e => e.code === errorCode);
+  return error ? error.label : errorCode; // 매칭되는 label이 없으면 errorCode 자체 반환
+}
+
 // 비가동 장비 목록을 가져오는 API 호출 함수
 async function fetchNonOperationalMachines() {
   try {
@@ -95,14 +112,26 @@ async function fetchNonOperationalMachines() {
     
     data.forEach(newMachine => {
         const existingMachine = nonOperationalMachines.value.find(m => m.pmId === newMachine.pmId);
+        const statusClass = getStatusClass(newMachine);
+        
+        // errorCode가 있으면 해당 label로 statusText 업데이트
+        const statusText = newMachine.errorCode 
+          ? getErrorLabel(newMachine.errorCode) 
+          : newMachine.statusText;
+        
         if (!existingMachine) {
             nonOperationalMachines.value.push({
                 ...newMachine,
-                statusClass: 'status-danger'
+                statusClass: statusClass,
+                statusText: statusText
             });
         } else {
             if (existingMachine.lastUpdate !== newMachine.lastUpdate) {
-                Object.assign(existingMachine, newMachine);
+                Object.assign(existingMachine, {
+                    ...newMachine,
+                    statusClass: statusClass,
+                    statusText: statusText
+                });
             }
         }
     });
@@ -119,7 +148,8 @@ async function fetchNonOperationalMachines() {
 // 유지보수 등록 모달 열기
 function openMaintenanceModal(machine) {
   selectedMachine.value = machine;
-  selectedErrorCode.value = '';
+  // 이미 등록된 에러코드가 있으면 선택된 상태로 표시
+  selectedErrorCode.value = machine.errorCode || '';
   isModalVisible.value = true;
 }
 
@@ -165,6 +195,7 @@ async function submitMaintenance() {
   try {
     await setMaintenance(selectedMachine.value.pmId, selectedErrorCode.value);
     
+    // 로컬 상태 업데이트
     const machineToUpdate = nonOperationalMachines.value.find(
       m => m.pmId === selectedMachine.value.pmId
     );
@@ -173,7 +204,8 @@ async function submitMaintenance() {
     );
 
     if (machineToUpdate && selectedError) {
-      machineToUpdate.statusText = selectedError.label;
+      machineToUpdate.errorCode = selectedErrorCode.value;
+      machineToUpdate.statusText = '점검'; // 서버에서 오는 statusText와 동일하게
       machineToUpdate.statusClass = 'status-warning';
     }
 
