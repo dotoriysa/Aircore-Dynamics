@@ -4,6 +4,23 @@
 
 <mapper namespace="com.example.demo.mapper.ProductionMapper">
 
+    <!-- 생산 실적 데이터 삽입 -->
+    <insert id="insertProductionData" parameterType="com.example.demo.model.ProductionData">
+        <![CDATA[
+        INSERT INTO production_data (
+            timestamp,
+            pm_id,
+            completed_quantity,
+            quality_grade
+        ) VALUES (
+            #{timestamp},
+            #{pmId},
+            #{completedQuantity},
+            #{qualityGrade}
+        )
+        ]]>
+    </insert>
+
     <select id="selectAllProductionRecords" resultType="com.example.demo.model.ProductionData">
         <![CDATA[
         SELECT
