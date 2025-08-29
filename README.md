@@ -4,6 +4,14 @@
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+## 🎬 시연 영상 (Full Demo)
+
+<a href="https://youtu.be/8WMgkRAVswo">
+  <img src="./docs/video/썸네일.png" width="300"/>
+</a>
+
+위 이미지를 클릭하면 **YouTube에서 전체 시연 영상을 재생**할 수 있습니다.
+
 ## 📌 프로젝트 개요
 **Air Core Dynamics**는 실시간 제조 데이터를 직관적으로 모니터링하기 위해 제작된 **웹 기반 스마트 팩토리 대시보드**입니다.  
 Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**를 통해,  
