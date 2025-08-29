@@ -124,7 +124,7 @@
         </div>
         
         <div class="slide-counter">
-            <span id="currentSlideNum">1</span> / <span id="totalSlideNum">19</span>
+            <span id="currentSlideNum">1</span> / <span id="totalSlideNum">28</span>
         </div>
 
         <div class="slide active">
@@ -136,39 +136,25 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 01. 통합 대시보드: 정상 가동 현황</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 01. 통합 대시보드: 실시간 현황 및 이상 감지</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
-                <img src="../screenshots/1_대시보드.png" alt="대시보드 정상 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
-                <div class="text-left bg-white p-6 rounded-lg shadow-sm border">
+                <div class="flex flex-col gap-4">
+                    <img src="../screenshots/1_대시보드.png" alt="대시보드 정상 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
+                </div>
+                <div class="text-left bg-white p-6 rounded-lg shadow-sm border self-start">
+                    <h3 class="font-bold text-lg mb-3 text-cyan-700">핵심 기능 요약</h3>
                     <ul class="space-y-3 text-slate-600">
-                        <li><strong>생산 현황:</strong> 금일 생산량, 시간대별 추세, 목표 대비 진행률</li>
-                        <li><strong>가동 현황:</strong> 전체/공정별 가동률, 가동·정지 장비 수</li>
-                        <li><strong>품질 관리:</strong> 검사 통과율, 불량률 및 유형 분포</li>
-                        <li><strong>설비 상태 모니터링:</strong> 주요 장비별 상태 (정상/주의/정지)</li>
-                        <li><strong>환경 모니터링:</strong> 온도, 습도, 전력 소비량 데이터</li>
-                        <li><strong>알림 패널:</strong> 장비 이상, 품질 문제 등 이벤트 알림</li>
-                        <li><strong>3D 공장 뷰어 연동:</strong> 데이터와 실제 설비 상태 직관적 연결</li>
+                        <li><strong>실시간 모니터링:</strong> 생산, 가동, 품질, 설비, 환경 등 공장 전체의 핵심 지표를 한눈에 파악합니다.</li>
+                        <li><strong>이상 신호 감지:</strong> 장비 이상이나 품질 문제 발생 시, 알림 패널과 3D 모델을 통해 즉각적으로 상황을 인지하고 위치를 파악할 수 있습니다.</li>
+                        <li><strong>신속 대응 지원:</strong> 직관적인 데이터 시각화로 관리자가 신속하게 원인을 분석하고 대응하도록 유도하여 다운타임을 최소화합니다.</li>
+                        <li><strong>3D 공장 뷰어 연동:</strong> 모든 데이터는 3D 공장 뷰어와 연동되어 실제 설비의 상태를 직관적으로 확인할 수 있습니다.</li>
                     </ul>
                 </div>
             </div>
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 02. 통합 대시보드: 이상 신호 감지 및 대응</h2>
-            <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
-                <img src="../screenshots/2_대시보드.png" alt="대시보드 알림 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
-                <div class="text-left bg-white p-6 rounded-lg shadow-sm border">
-                    <ul class="space-y-3 text-slate-600">
-                        <li><strong>알림 패널 강조:</strong> 장비 이상, 품질 문제 등 이벤트 발생 시 즉각적으로 강조 표시됩니다.</li>
-                        <li><strong>3D 모델 연동:</strong> 이상이 발생한 설비의 3D 모델과 관련 지표가 시각적으로 변화하여 문제 위치를 즉시 파악할 수 있습니다.</li>
-                        <li><strong>신속 대응 지원:</strong> 관리자가 즉시 상황을 인지하고 조치할 수 있도록 유도하여 다운타임을 최소화합니다.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 03. 공정별 맞춤 분석: 주조 라인</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 02. 공정별 맞춤 분석: 주조 라인</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
                 <img src="../screenshots/3_라인별상세_주조라인.png" alt="주조 라인 상세 분석 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
                 <div class="text-left bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -193,7 +179,7 @@
         </div>
         
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 04. 공정별 맞춤 분석: 가공 라인</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 03. 공정별 맞춤 분석: 가공 라인</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
                 <img src="../screenshots/4_라인별상세_가공라인.png" alt="가공 라인 상세 분석 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
                 <div class="text-left bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -204,7 +190,7 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 05. 공정별 맞춤 분석: 검사 라인</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 04. 공정별 맞춤 분석: 검사 라인</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
                 <img src="../screenshots/5_라인별상세_검사라인.png" alt="검사 라인 상세 분석 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
                 <div class="text-left bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -215,7 +201,7 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 06. 공정별 맞춤 분석: 조립 라인</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 05. 공정별 맞춤 분석: 조립 라인</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
                 <img src="../screenshots/6_라인별상세_조립라인.png" alt="조립 라인 상세 분석 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
                 <div class="text-left bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -226,7 +212,7 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 07. 공정별 맞춤 분석: 포장/출하 라인</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 06. 공정별 맞춤 분석: 포장/출하 라인</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
                 <img src="../screenshots/7_라인별상세_포장출하.png" alt="포장/출하 라인 상세 분석 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
                 <div class="text-left bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -237,7 +223,7 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 08. 데이터를 통한 미래 예측 분석</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 07. 데이터를 통한 미래 예측 분석</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
                 <img src="../screenshots/8_예측분석.png" alt="예측 분석 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
                 <div class="text-left bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -254,7 +240,7 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 09. 실시간 재고 및 출하 관리</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 08. 실시간 재고 및 출하 관리</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
                 <img src="../screenshots/9_재고출하.png" alt="재고 및 출하 관리 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
                 <div class="text-left bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -271,7 +257,7 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 10. 지능형 비가동 설비 관리</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 09. 지능형 비가동 설비 관리</h2>
             <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 items-center">
                 <img src="../screenshots/10_비가동장비관리.png" alt="비가동 장비 관리 스크린샷" class="rounded-lg shadow-xl border w-full h-auto">
                 <div class="text-left bg-white p-6 rounded-lg shadow-sm border space-y-4">
@@ -286,61 +272,98 @@
                 </div>
             </div>
         </div>
-        
+        <div class="slide"> 
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 10. 기능별 실행 영상 (Demo)</h2> 
+            <div class="w-full max-w-7xl bg-white p-6 rounded-lg shadow-xl border"> 
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center"> 
+                    
+                    <div class="border p-2 rounded-lg shadow-sm"> 
+                        <img src="../video/backend.gif" alt="백엔드 실행 영상" class="w-full rounded-md mb-2"> 
+                        <p class="font-semibold text-sm text-slate-600">백엔드 (Backend)</p> 
+                    </div> 
+
+                    <div class="border p-2 rounded-lg shadow-sm"> 
+                        <img src="../video/frontend.gif" alt="프론트엔드 실행 영상" class="w-full rounded-md mb-2"> 
+                        <p class="font-semibold text-sm text-slate-600">프론트엔드 (Frontend)</p> 
+                    </div> 
+
+                    <div class="border p-2 rounded-lg shadow-sm"> 
+                        <img src="../video/line.gif" alt="라인 상세 실행 영상" class="w-full rounded-md mb-2"> 
+                        <p class="font-semibold text-sm text-slate-600">라인 상세 (Line Details)</p> 
+                    </div> 
+
+                    <div class="border p-2 rounded-lg shadow-sm"> 
+                        <img src="../video/main.gif" alt="메인 대시보드 실행 영상" class="w-full rounded-md mb-2"> 
+                        <p class="font-semibold text-sm text-slate-600">메인 대시보드 (Main)</p> 
+                    </div> 
+
+                    <div class="border p-2 rounded-lg shadow-sm"> 
+                        <img src="../video/Non-operational.gif" alt="비가동 설비 관리 실행 영상" class="w-full rounded-md mb-2"> 
+                        <p class="font-semibold text-sm text-slate-600">비가동 설비 관리</p> 
+                    </div> 
+
+                    <div class="border p-2 rounded-lg shadow-sm"> 
+                        <img src="../video/Predictive_Inventory.gif" alt="예측 및 재고 관리 실행 영상" class="w-null rounded-md mb-2"> 
+                        <p class="font-semibold text-sm text-slate-600">예측 및 재고 관리</p> 
+                    </div> 
+                    
+                    <div class="border p-2 rounded-lg shadow-sm"> 
+                        <img src="../video/view.gif" alt="3D 공장 뷰 실행 영상" class="w-full rounded-md mb-2"> 
+                        <p class="font-semibold text-sm text-slate-600">3D 공장 뷰 (View)</p> 
+                    </div> 
+
+                </div> 
+            </div> 
+            <p class="mt-4 text-slate-500">각 기능별 실제 동작 화면입니다.</p> 
+        </div>        
+
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">🎥 기능별 실행 영상 (Demo)</h2>
-            <div class="w-full max-w-7xl bg-white p-6 rounded-lg shadow-xl border">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                    
-                    <div class="border p-2 rounded-lg shadow-sm">
-                        <img src="../video/backend.gif" alt="백엔드 실행 영상" class="w-full rounded-md mb-2">
-                        <p class="font-semibold text-sm text-slate-600">백엔드 (Backend)</p>
-                    </div>
-
-                    <div class="border p-2 rounded-lg shadow-sm">
-                        <img src="../video/frontend.gif" alt="프론트엔드 실행 영상" class="w-full rounded-md mb-2">
-                        <p class="font-semibold text-sm text-slate-600">프론트엔드 (Frontend)</p>
-                    </div>
-
-                    <div class="border p-2 rounded-lg shadow-sm">
-                        <img src="../video/line.gif" alt="라인 상세 실행 영상" class="w-full rounded-md mb-2">
-                        <p class="font-semibold text-sm text-slate-600">라인 상세 (Line Details)</p>
-                    </div>
-
-                    <div class="border p-2 rounded-lg shadow-sm">
-                        <img src="../video/main.gif" alt="메인 대시보드 실행 영상" class="w-full rounded-md mb-2">
-                        <p class="font-semibold text-sm text-slate-600">메인 대시보드 (Main)</p>
-                    </div>
-
-                    <div class="border p-2 rounded-lg shadow-sm">
-                        <img src="../video/Non-operational.gif" alt="비가동 설비 관리 실행 영상" class="w-full rounded-md mb-2">
-                        <p class="font-semibold text-sm text-slate-600">비가동 설비 관리</p>
-                    </div>
-
-                    <div class="border p-2 rounded-lg shadow-sm">
-                        <img src="../video/Predictive_Inventory.gif" alt="예측 및 재고 관리 실행 영상" class="w-full rounded-md mb-2">
-                        <p class="font-semibold text-sm text-slate-600">예측 및 재고 관리</p>
-                    </div>
-                    
-                    <div class="border p-2 rounded-lg shadow-sm">
-                        <img src="../video/view.gif" alt="3D 공장 뷰 실행 영상" class="w-full rounded-md mb-2">
-                        <p class="font-semibold text-sm text-slate-600">3D 공장 뷰 (View)</p>
-                    </div>
-
-                </div>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 11. 실행 영상 (메인 대시보드)</h2>
+            <div class="w-full max-w-5xl text-center">
+                <img src="../video/main.gif" alt="메인 대시보드 실행 영상" class="rounded-lg shadow-xl border w-full h-auto">
+                <p class="mt-2 font-semibold">메인 대시보드 (Main)</p>
             </div>
-            <p class="mt-4 text-slate-500">각 기능별 실제 동작 화면입니다.</p>
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">📐 시스템 화면 흐름도</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 12. 실행 영상 (라인 상세)</h2>
+            <div class="w-full max-w-5xl text-center">
+                <img src="../video/line.gif" alt="라인 상세 실행 영상" class="rounded-lg shadow-xl border w-full h-auto">
+                <p class="mt-2 font-semibold">라인 상세 (Line Details)</p>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 13. 실행 영상 (예측 및 재고 관리)</h2>
+            <div class="w-full max-w-5xl text-center">
+                <img src="../video/Predictive_Inventory.gif" alt="예측 및 재고 관리 실행 영상" class="rounded-lg shadow-xl border w-full h-auto">
+                <p class="mt-2 font-semibold">예측 및 재고 관리</p>
+            </div>
+        </div>
+        <div class="slide">
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 14. 실행 영상 (비가동 설비 관리)</h2>
+            <div class="w-full max-w-5xl text-center">
+                <img src="../video/Non-operational.gif" alt="비가동 설비 관리 실행 영상" class="rounded-lg shadow-xl border w-full h-auto">
+                <p class="mt-2 font-semibold">비가동 설비 관리</p>
+            </div>
+        </div>
+        <div class="slide">
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 15. 실행 영상 (3D 공장 뷰)</h2>
+            <div class="w-full max-w-5xl text-center">
+                <img src="../video/view.gif" alt="3D 공장 뷰 실행 영상" class="rounded-lg shadow-xl border w-full h-auto">
+                <p class="mt-2 font-semibold">3D 공장 뷰 (View)</p>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 16. 시스템 화면 흐름도</h2>
             <div class="w-full max-w-6xl bg-white p-4 rounded-lg shadow-xl border">
                 <img src="../Aircore Dynamics Screen Flow.png" alt="시스템 화면 흐름도" class="w-10/12 mx-auto block rounded-md">
             </div>
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">📐 시스템 화면 흐름도 - 단계별 설명</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 17. 시스템 화면 흐름도 - 단계별 설명</h2>
             <div class="w-full max-w-5xl grid md:grid-cols-3 gap-6 text-left">
                 <div class="bg-white p-6 rounded-lg shadow-sm border">
                     <h3 class="font-bold text-lg mb-2 text-cyan-700">1단계: 메인 대시보드</h3>
@@ -358,22 +381,22 @@
         </div>
         
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">🖌️ UI/UX (Design - Figma)</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 18. UI/UX (Design - Figma)</h2>
             <p class="max-w-3xl text-center mb-8 text-slate-600">사용자 여정(User Flow) 중심의 와이어프레임, 정보 계층 구조를 반영한 지표 시각화, 다크 모드 기반의 현대적 UI를 고려하여 Figma로 설계했습니다.</p>
             <div class="w-full max-w-6xl grid md:grid-cols-2 gap-8">
                 <div class="text-center">
-                    <img src="../video/main.gif" class="rounded-lg shadow-xl border w-full h-auto">
+                    <img src="../figma_dashboard.png" alt="메인 대시보드 시안" class="rounded-lg shadow-xl border w-full h-auto">
                     <p class="mt-2 font-semibold">메인 대시보드 시안</p>
                 </div>
                  <div class="text-center">
-                    <img src="../video/view.gif" class="rounded-lg shadow-xl border w-full h-auto">
+                    <img src="../figma_view.png" alt="공정 전체 화면 시안" class="rounded-lg shadow-xl border w-full h-auto">
                     <p class="mt-2 font-semibold">공정 전체 화면 시안</p>
                 </div>
             </div>
         </div>
         
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">🏗️ 시스템 아키텍처</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 19. 시스템 아키텍처</h2>
             <div class="w-full max-w-4xl bg-white p-8 rounded-lg shadow-sm border">
                 <div class="space-y-4">
                     <div class="p-4 bg-cyan-50 border-l-4 border-cyan-500 rounded-r-md text-left"><h4 class="font-semibold">Presentation Layer</h4><p class="text-sm text-slate-600">Vue.js 3 + Three.js 기반 사용자 인터페이스 및 3D 시각화</p></div>
@@ -385,20 +408,70 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">🛠️ 기술 스택</h2>
-            <div class="w-full max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><h4 class="font-bold text-lg text-cyan-700 mb-2">Frontend</h4><p class="text-slate-600">Vue.js, ECharts, HTML5, CSS3, JS</p></div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><h4 class="font-bold text-lg text-cyan-700 mb-2">3D Graphics</h4><p class="text-slate-600">Three.js</p></div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><h4 class="font-bold text-lg text-cyan-700 mb-2">Backend</h4><p class="text-slate-600">Java 17, Spring Boot, MyBatis</p></div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><h4 class="font-bold text-lg text-cyan-700 mb-2">Database</h4><p class="text-slate-600">MySQL</p></div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><h4 class="font-bold text-lg text-cyan-700 mb-2">Build Tool</h4><p class="text-slate-600">Maven</p></div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><h4 class="font-bold text-lg text-cyan-700 mb-2">Deployment</h4><p class="text-slate-600">Vercel</p></div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><h4 class="font-bold text-lg text-cyan-700 mb-2">Design</h4><p class="text-slate-600">Figma</p></div>
-            </div>
-        </div>
-
+    <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 20. 기술 스택 (Tech Stack)</h2>
+    <div class="w-full max-w-4xl bg-slate-800 text-white p-1 rounded-lg shadow-2xl border border-slate-700">
+        <table class="w-full">
+            <thead class="bg-slate-900">
+                <tr>
+                    <th class="p-3 text-left font-semibold w-1/5">분야</th>
+                    <th class="p-3 text-left font-semibold">기술</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-t border-slate-700">
+                    <td class="p-3 align-middle font-medium">Frontend</td>
+                    <td class="p-3 flex flex-wrap gap-2 items-center">
+                        <img src="https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white" alt="Vue.js">
+                        <img src="https://img.shields.io/badge/ECharts-AA343F?style=for-the-badge&logo=apacheecharts&logoColor=white" alt="ECharts">
+                        <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
+                        <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3">
+                        <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript">
+                    </td>
+                </tr>
+                <tr class="border-t border-slate-700">
+                    <td class="p-3 align-middle font-medium">3D Graphics</td>
+                    <td class="p-3">
+                        <img src="https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=threedotjs&logoColor=white" alt="Three.js">
+                    </td>
+                </tr>
+                <tr class="border-t border-slate-700">
+                    <td class="p-3 align-middle font-medium">Backend</td>
+                    <td class="p-3 flex flex-wrap gap-2 items-center">
+                        <img src="https://img.shields.io/badge/Java%2017-007396?style=for-the-badge&logo=java&logoColor=white" alt="Java 17">
+                        <img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot">
+                        <img src="https://img.shields.io/badge/MyBatis-000000?style=for-the-badge&logo=mybatis&logoColor=white" alt="MyBatis">
+                    </td>
+                </tr>
+                <tr class="border-t border-slate-700">
+                    <td class="p-3 align-middle font-medium">Database</td>
+                    <td class="p-3">
+                        <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+                    </td>
+                </tr>
+                <tr class="border-t border-slate-700">
+                    <td class="p-3 align-middle font-medium">Build Tool</td>
+                    <td class="p-3">
+                        <img src="https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white" alt="Maven">
+                    </td>
+                </tr>
+                <tr class="border-t border-slate-700">
+                    <td class="p-3 align-middle font-medium">Deployment</td>
+                    <td class="p-3">
+                        <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel">
+                    </td>
+                </tr>
+                <tr class="border-t border-slate-700">
+                    <td class="p-3 align-middle font-medium">Design</td>
+                    <td class="p-3">
+                        <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">🏆 성과 및 결과</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 21. 성과 및 결과</h2>
             <div class="w-full max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><span class="text-4xl font-bold text-cyan-600">100%</span><p class="text-slate-500 mt-1">실시간 동기화</p></div>
                 <div class="bg-white p-6 rounded-lg shadow-sm border text-center"><span class="text-4xl font-bold text-cyan-600">8대</span><p class="text-slate-500 mt-1">장비 통합 관리</p></div>
@@ -412,7 +485,7 @@
         </div>
 
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">🚀 시작하기 (Getting Started)</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 22. 시작하기 (Getting Started)</h2>
             <div class="w-full max-w-2xl bg-slate-800 text-white p-6 rounded-lg shadow-lg text-left font-mono">
                 <p class="mb-4 text-green-400"># 1. 프로젝트를 클론합니다.</p>
                 <code class="block bg-slate-900 p-3 rounded-md">git clone https://github.com/your-repo/Aircore-Dynamics.git<br>cd Aircore-Dynamics/frontend</code>
@@ -422,9 +495,21 @@
                 <code class="block bg-slate-900 p-3 rounded-md">npm run dev</code>
             </div>
         </div>
-
         <div class="slide">
-            <h2 class="text-4xl font-bold text-cyan-800 mb-8">📂 파일 구조</h2>
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 23. 실행 영상 (Backend & Frontend)</h2>
+            <div class="w-full max-w-6xl grid md:grid-cols-2 gap-8">
+                <div class="text-center">
+                    <img src="../video/backend.gif" alt="백엔드 실행 영상" class="rounded-lg shadow-xl border w-full h-auto">
+                    <p class="mt-2 font-semibold">백엔드 (Backend)</p>
+                </div>
+                <div class="text-center">
+                    <img src="../video/frontend.gif" alt="프론트엔드 실행 영상" class="rounded-lg shadow-xl border w-full h-auto">
+                    <p class="mt-2 font-semibold">프론트엔드 (Frontend)</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide">
+            <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 24. 파일 구조</h2>
             <div class="w-full max-w-2xl bg-white p-6 rounded-lg shadow-sm border text-left">
                 <pre class="text-slate-600"><code>Aircore-Dynamics/
 ├── src/                  <span class="text-gray-400"># Vue.js 프론트엔드 소스</span>
