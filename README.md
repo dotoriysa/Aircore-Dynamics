@@ -16,6 +16,9 @@
 
 </div>
 
+## PPT
+[👉 PPT 보기](https://dotoriysa.github.io/Aircore-Dynamics/ppt/aircoredynamics_ppt.html)
+
 ## 📌 프로젝트 개요
 **Air Core Dynamics**는 실시간 제조 데이터를 직관적으로 모니터링하기 위해 제작된 **웹 기반 스마트 팩토리 대시보드**입니다.  
 Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**를 통해,  
@@ -238,11 +241,6 @@ Aircore-Dynamics/
 ```
 🔎 전체 구조와 상세 설명은 [아키텍처 문서](./docs/architecture.md)에서 확인할 수 있습니다.
 
----
-
-## 📊 AirCore Dynamics Presentation
-
-[👉 전체 PPT 보기](https://dotoriysa.github.io/Aircore-Dynamics/ppt/aircoredynamics_ppt.html)
 
 ---
 
