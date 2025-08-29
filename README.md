@@ -7,10 +7,14 @@
 ## 🎬 시연 영상 (Full Demo)
 
 <a href="https://youtu.be/8WMgkRAVswo" target="_blank">
-  <img src="./docs/video/썸네일.png" width="300"/>
+  <img src="./docs/video/썸네일.png" height="200"/>
 </a>
+<a href="https://youtu.be/8WMgkRAVswo" target="_blank">
+  <img src="./docs/video/qrcode_demo.png"  height="100"/>
+</a>
+<p><b> 위 이미지를 클릭하거나 QR 코드를 찍으면 YouTube에서 전체 시연 영상을 바로 재생할 수 있습니다.</b></p>
 
-위 이미지를 클릭하면 **YouTube에서 전체 시연 영상을 재생**할 수 있습니다.
+</div>
 
 ## 📌 프로젝트 개요
 **Air Core Dynamics**는 실시간 제조 데이터를 직관적으로 모니터링하기 위해 제작된 **웹 기반 스마트 팩토리 대시보드**입니다.  
