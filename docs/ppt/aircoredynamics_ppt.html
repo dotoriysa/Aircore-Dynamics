@@ -526,6 +526,71 @@
 └── README.md</code></pre>
             </div>
         </div>
+        <div class="slide">
+    <h2 class="text-4xl font-bold text-cyan-800 mb-8">✨ 25. 상세 파일 구조</h2>
+    <div class="w-full max-w-7xl grid md:grid-cols-2 gap-8 text-left">
+
+        <div>
+            <h3 class="text-2xl font-bold mb-4 flex items-center"><span class="text-3xl mr-3">🖥️</span> Backend (Spring Boot)</h3>
+            <pre class="bg-slate-800 text-slate-300 p-6 rounded-lg text-sm overflow-x-auto h-full"><code>src/main/java/com/example/demo/
+├── config/
+│   └── CorsConfig.java               <span class="text-slate-500"># CORS 설정</span>
+│
+├── controller/
+│   ├── MachineDashboardController.java   <span class="text-slate-500"># 머신 대시보드 API</span>
+│   ├── MainDashboardController.java      <span class="text-slate-500"># 메인 대시보드 API</span>
+│   ├── ...                         <span class="text-slate-500">(기타 컨트롤러)</span>
+│
+├── mapper/
+│   ├── FactoryMapper.java            <span class="text-slate-500"># 공장 데이터 접근</span>
+│   ├── MachineInfoMapper.java        <span class="text-slate-500"># 설비 정보 접근</span>
+│   ├── ...                         <span class="text-slate-500">(기타 매퍼)</span>
+│
+├── model/
+│   ├── FactoryEnvironmentData.java   <span class="text-slate-500"># 공장 환경 모델</span>
+│   ├── MachineStatusData.java        <span class="text-slate-500"># 머신 상태 모델</span>
+│   └── ...                         <span class="text-slate-500">(기타 모델)</span>
+│
+├── service/
+│   ├── MachineDashboardService.java      <span class="text-slate-500"># 머신 대시보드 서비스</span>
+│   ├── MainDashboardService.java         <span class="text-slate-500"># 메인 대시보드 서비스</span>
+│   └── ...                         <span class="text-slate-500">(기타 서비스)</span>
+│
+└── util/
+    └── Random...DataGenerator.java   <span class="text-slate-500"># 더미 데이터 생성기</span></code></pre>
+        </div>
+
+        <div>
+            <h3 class="text-2xl font-bold mb-4 flex items-center"><span class="text-3xl mr-3">🌐</span> Frontend (Vue.js)</h3>
+            <pre class="bg-slate-800 text-slate-300 p-6 rounded-lg text-sm overflow-x-auto h-full"><code>src/
+├── assets/
+│   └── styles/                     <span class="text-slate-500"># 전역 스타일, 폰트</span>
+│
+├── components/
+│   ├── dashboard/
+│   │   ├── MachineStatus.vue       <span class="text-slate-500"># 장비 상태 위젯</span>
+│   │   ├── PowerUsage.vue          <span class="text-slate-500"># 전력량 차트</span>
+│   │   └── ...                     <span class="text-slate-500">(기타 위젯)</span>
+│   └── common/
+│       ├── Navbar.vue              <span class="text-slate-500"># 상단 네비게이션</span>
+│       ├── Sidebar.vue             <span class="text-slate-500"># 사이드 메뉴</span>
+│       └── ...                     <span class="text-slate-500">(공통 컴포넌트)</span>
+│
+├── router/
+│   └── index.js                    <span class="text-slate-500"># Vue Router 설정</span>
+│
+├── views/
+│   ├── MainDashboard.vue           <span class="text-slate-500"># 메인 대시보드 뷰</span>
+│   ├── ProcessDashboard.vue        <span class="text-slate-500"># 공정별 대시보드 뷰</span>
+│   └── ...                         <span class="text-slate-500">(기타 뷰)</span>
+│
+├── App.vue                         <span class="text-slate-500"># Root 컴포넌트</span>
+└── main.js                         <span class="text-slate-500"># 진입 파일</span></code></pre>
+        </div>
+
+    </div>
+</div>
+        
 
         <div class="slide">
             <h1 class="text-6xl font-bold text-cyan-700">🙏 감사합니다</h1>
