@@ -41,7 +41,7 @@ Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**�
         - **장비 포커스**: F  
         - **애니메이션**: 스페이스바  
 
-![3D 전체화면 스크린샷](./docs/screenshots/3_라인별상세_주조라인.png)
+![라인별 상세 분석 스크린샷](./docs/screenshots/3_라인별상세_주조라인.png)
 - **📈 라인별 상세 분석**:
     - 주조, 가공, 검사, 조립, 포장 등 각 공정 라인별 상세 데이터를 심층적으로 확인할 수 있습니다.
     - **라인 현황 지표 제공**:
@@ -71,9 +71,20 @@ Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**�
 
 ## 🎥 실행 영상
 
-![대시보드 영상](./docs/demo.gif)
+![대시보드 영상](./docs/video/main.gif)
+실제 동작 화면 (실시간 데이터 시뮬레이션 대시보드)
 
-> 실제 동작 화면 (실시간 데이터 시뮬레이션 + 3D 공장 뷰어)
+![전체화면 영상](./docs/video/view.gif)
+실제 동작 화면 (3D 전체화면 뷰)
+
+![라인별 상세 분석 영상](./docs/video/line.gif)
+실제 동작 화면 (라인별 상세 분석)
+
+![예측 분석 & 재고 및 출하 관리 영상](./docs/video/Predictive_Inventory.gif)
+실제 동작 화면 (예측 분석 & 재고 및 출하 관리)
+
+![비가동 장비 관리 영상](./docs/video/Non-operational.gif)
+실제 동작 화면 (비가동 중인 장비 목록 + 오류 코드 선택)
 
 ---
 
@@ -95,6 +106,20 @@ Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**�
 - **3단계 (장비 상세 화면)**  
   - 장비 번호, 상태(가동/정지/점검), 전력량(kW), 생산량(개/시간), 가동률(%) 표시  
   - 사용자 액션: 특정 장비를 클릭하면 해당 장비의 상세 정보로 변경
+
+---
+
+## 📊 데이터 모델 (Entity Relationship Diagram)
+
+![Aircore Dynamics ERD](./docs/ERD.svg)
+
+본 ERD는 **Aircore Dynamics 대시보드**에서 사용하는 주요 데이터베이스 테이블 구조와 관계를 나타냅니다.  
+- **주요 테이블**: 생산(Production), 설비(Equipment), 공정(Process), 품질(Quality), 재고(Inventory)  
+- **핵심 관계**:  
+  - `Equipment` ↔ `Process` (설비는 특정 공정에 속함)  
+  - `Production` ↔ `Equipment` (생산 기록은 설비별로 생성)  
+  - `Quality` ↔ `Production` (품질 검사는 생산 결과와 연동)  
+  - `Inventory` ↔ `Production` (재고는 생산량 및 출하와 연결)  
 
 ---
 
@@ -166,7 +191,11 @@ Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**�
 
 브라우저에서 http://localhost:5173 (Vite 기본 포트) 에 접속하면 대시보드를 확인할 수 있습니다.
 
-![실행 영상](./docs/demo.gif)
+![백엔드 실행 영상](./docs/video/backend.gif)
+백엔드 실행 영상
+
+![프론트엔드 실행 영상](./docs/video/frontend.gif)
+프론트엔드 실행 영상
 
 ---
 
