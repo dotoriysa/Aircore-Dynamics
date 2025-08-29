@@ -218,7 +218,8 @@ Aircore-Dynamics/
 │   ├── controller/       # API 컨트롤러
 │   ├── service/          # 서비스 로직
 │   ├── mapper/           # MyBatis 매퍼
-│   └── model/            # 데이터 모델
+│   ├── model/            # 데이터 모델
+│   └── util/             # 테스트용 랜덤 데이터 생성 로직
 │
 ├── docs/                 # 프로젝트 문서 및 ERD
 └── README.md
