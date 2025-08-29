@@ -1,140 +1,162 @@
-<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+<svg width="1200" height="900" xmlns="http://www.w3.org/2000/svg">
+  <!-- 스타일 정의 -->
+  <defs>
+    <style>
+      .table-header { font-family: 'Arial', sans-serif; font-size: 14px; font-weight: bold; fill: white; }
+      .table-field { font-family: 'Arial', sans-serif; font-size: 11px; fill: white; }
+      .table-note { font-family: 'Arial', sans-serif; font-size: 10px; fill: white; opacity: 0.8; }
+      .relation-text { font-family: 'Arial', sans-serif; font-size: 11px; fill: #2c3e50; font-weight: bold; }
+      .title { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: bold; fill: #2c3e50; }
+    </style>
+    
+    <!-- 화살표 마커 -->
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#34495e"/>
+    </marker>
+    
+    <!-- 그림자 필터 -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="2" stdDeviation="1" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
   <!-- 배경 -->
-  <rect width="1200" height="800" fill="#f8f9fa"/>
+  <rect width="1200" height="900" fill="#f8f9fa"/>
   
   <!-- 제목 -->
-  <text x="600" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#2c3e50">제조업 데이터베이스 ERD</text>
+  <text x="600" y="30" text-anchor="middle" class="title">Aircore-Dynamics ERD</text>
+  <line x1="300" y1="40" x2="900" y2="40" stroke="#3498db" stroke-width="2"/>
   
-  <!-- Process_Machine_Info 테이블 (중심 테이블) -->
-  <g>
-    <rect x="480" y="60" width="240" height="160" fill="#3498db" stroke="#2980b9" stroke-width="2" rx="8"/>
-    <rect x="480" y="60" width="240" height="30" fill="#2980b9" rx="8"/>
-    <text x="600" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">Process_Machine_Info</text>
-    <text x="490" y="105" font-family="Arial, sans-serif" font-size="11" fill="white">🔑 PM_ID (VARCHAR)</text>
-    <text x="490" y="125" font-family="Arial, sans-serif" font-size="11" fill="white">Process_Name (VARCHAR)</text>
-    <text x="490" y="145" font-family="Arial, sans-serif" font-size="11" fill="white">Machine_Name (VARCHAR)</text>
-    <text x="490" y="165" font-family="Arial, sans-serif" font-size="11" fill="white">Standard_Cycle_Time (INT)</text>
-    <text x="490" y="185" font-family="Arial, sans-serif" font-size="11" fill="white">Description (VARCHAR)</text>
-    <text x="490" y="205" font-family="Arial, sans-serif" font-size="10" fill="#ecf0f1">(고정 테이블)</text>
+  <!-- Process_Machine_Info 테이블 (왼쪽) -->
+  <g id="master-table" filter="url(#shadow)">
+    <rect x="50" y="320" width="300" height="180" fill="#3498db" stroke="#2980b9" stroke-width="2" rx="5"/>
+    <rect x="50" y="320" width="300" height="35" fill="#2980b9" rx="5"/>
+    
+    <text x="200" y="342" text-anchor="middle" class="table-header">Process_Machine_Info</text>
+    
+    <text x="65" y="365" class="table-field">🔑 pm_id VARCHAR - 머신 ID</text>
+    <text x="65" y="385" class="table-field">process_name VARCHAR - 공정명</text>
+    <text x="65" y="405" class="table-field">machine_name VARCHAR - 머신명</text>
+    <text x="65" y="425" class="table-field">standard_cycle_time INT - 표준 사이클</text>
+    <text x="65" y="445" class="table-field">description TEXT - 설명</text>
+    
+    <text x="65" y="475" class="table-note">PM001~PM008 (8대 머신 마스터)</text>
   </g>
-
-  <!-- Environment_Data 테이블 -->
-  <g>
-    <rect x="50" y="60" width="200" height="120" fill="#e74c3c" stroke="#c0392b" stroke-width="2" rx="8"/>
-    <rect x="50" y="60" width="200" height="30" fill="#c0392b" rx="8"/>
-    <text x="150" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Environment_Data</text>
-    <text x="60" y="105" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
-    <text x="60" y="125" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
-    <text x="60" y="145" font-family="Arial, sans-serif" font-size="10" fill="white">temperature (FLOAT)</text>
-    <text x="60" y="165" font-family="Arial, sans-serif" font-size="10" fill="white">humidity (FLOAT)</text>
-    <text x="60" y="185" font-family="Arial, sans-serif" font-size="9" fill="#f8c9c1">(10분 간격)</text>
+  
+  <!-- Environment_Data 테이블 (왼쪽 상단, 독립) -->
+  <g id="env-table" filter="url(#shadow)">
+    <rect x="50" y="120" width="260" height="140" fill="#27ae60" stroke="#229954" stroke-width="2" rx="5"/>
+    <rect x="50" y="120" width="260" height="35" fill="#229954" rx="5"/>
+    
+    <text x="180" y="142" text-anchor="middle" class="table-header">Environment_Data</text>
+    
+    <text x="65" y="165" class="table-field">🔑 id INT - 고유 ID</text>
+    <text x="65" y="185" class="table-field">timestamp DATETIME - 측정시간</text>
+    <text x="65" y="205" class="table-field">temperature FLOAT - 온도(°C)</text>
+    <text x="65" y="225" class="table-field">humidity FLOAT - 습도(%)</text>
+    
+    <text x="65" y="245" class="table-note">5초 주기, 20~30°C 범위</text>
   </g>
-
-  <!-- Production_Data 테이블 -->
-  <g>
-    <rect x="280" y="280" width="220" height="140" fill="#27ae60" stroke="#229954" stroke-width="2" rx="8"/>
-    <rect x="280" y="280" width="220" height="30" fill="#229954" rx="8"/>
-    <text x="390" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Production_Data</text>
-    <text x="290" y="325" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
-    <text x="290" y="345" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
-    <text x="290" y="365" font-family="Arial, sans-serif" font-size="10" fill="white">🔗 pm_id (VARCHAR, FK)</text>
-    <text x="290" y="385" font-family="Arial, sans-serif" font-size="10" fill="white">completed_quantity (INT)</text>
-    <text x="290" y="405" font-family="Arial, sans-serif" font-size="10" fill="white">quality_grade (VARCHAR)</text>
-    <text x="290" y="425" font-family="Arial, sans-serif" font-size="9" fill="#a9dfbf">(완료 시점 기준)</text>
+  
+  <!-- Power_Data 테이블 (우상) -->
+  <g id="power-table" filter="url(#shadow)">
+    <rect x="850" y="120" width="260" height="140" fill="#f39c12" stroke="#e67e22" stroke-width="2" rx="5"/>
+    <rect x="850" y="120" width="260" height="35" fill="#e67e22" rx="5"/>
+    
+    <text x="980" y="142" text-anchor="middle" class="table-header">Power_Data</text>
+    
+    <text x="865" y="165" class="table-field">🔑 id INT - 고유 ID</text>
+    <text x="865" y="185" class="table-field">timestamp DATETIME - 측정시간</text>
+    <text x="865" y="205" class="table-field">🔗 pm_id VARCHAR - 머신 ID (FK)</text>
+    <text x="865" y="225" class="table-field">power_consumption FLOAT - 전력(kWh)</text>
+    
+    <text x="865" y="245" class="table-note">5초 주기, 30~50kWh 범위</text>
   </g>
-
-  <!-- Power_Data 테이블 -->
-  <g>
-    <rect x="700" y="280" width="200" height="120" fill="#f39c12" stroke="#e67e22" stroke-width="2" rx="8"/>
-    <rect x="700" y="280" width="200" height="30" fill="#e67e22" rx="8"/>
-    <text x="800" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Power_Data</text>
-    <text x="710" y="325" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
-    <text x="710" y="345" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
-    <text x="710" y="365" font-family="Arial, sans-serif" font-size="10" fill="white">🔗 pm_id (VARCHAR, FK)</text>
-    <text x="710" y="385" font-family="Arial, sans-serif" font-size="10" fill="white">power_consumption (FLOAT)</text>
-    <text x="710" y="405" font-family="Arial, sans-serif" font-size="9" fill="#f8dc7c">(1분 간격)</text>
+  
+  <!-- Production_Data 테이블 (우중) -->
+  <g id="production-table" filter="url(#shadow)">
+    <rect x="850" y="320" width="280" height="160" fill="#9b59b6" stroke="#8e44ad" stroke-width="2" rx="5"/>
+    <rect x="850" y="320" width="280" height="35" fill="#8e44ad" rx="5"/>
+    
+    <text x="990" y="342" text-anchor="middle" class="table-header">Production_Data</text>
+    
+    <text x="865" y="365" class="table-field">🔑 id INT - 고유 ID</text>
+    <text x="865" y="385" class="table-field">timestamp DATETIME - 완료시간</text>
+    <text x="865" y="405" class="table-field">🔗 pm_id VARCHAR - 머신 ID (FK)</text>
+    <text x="865" y="425" class="table-field">completed_quantity INT - 완료수량</text>
+    <text x="865" y="445" class="table-field">quality_grade VARCHAR - 품질등급</text>
+    
+    <text x="865" y="465" class="table-note">10초 주기, 운전중 머신만 생산</text>
   </g>
-
-  <!-- Vibration_Data 테이블 -->
-  <g>
-    <rect x="280" y="480" width="220" height="140" fill="#9b59b6" stroke="#8e44ad" stroke-width="2" rx="8"/>
-    <rect x="280" y="480" width="220" height="30" fill="#8e44ad" rx="8"/>
-    <text x="390" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Vibration_Data</text>
-    <text x="290" y="525" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
-    <text x="290" y="545" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
-    <text x="290" y="565" font-family="Arial, sans-serif" font-size="10" fill="white">🔗 pm_id (VARCHAR, FK)</text>
-    <text x="290" y="585" font-family="Arial, sans-serif" font-size="10" fill="white">vibration_x (FLOAT)</text>
-    <text x="290" y="605" font-family="Arial, sans-serif" font-size="10" fill="white">vibration_y (FLOAT)</text>
-    <text x="290" y="625" font-family="Arial, sans-serif" font-size="10" fill="white">vibration_z (FLOAT)</text>
-    <text x="290" y="640" font-family="Arial, sans-serif" font-size="9" fill="#d2b4de">(10초 간격)</text>
+  
+  <!-- Machine_Status_Data 테이블 (우하) -->
+  <g id="status-table" filter="url(#shadow)">
+    <rect x="850" y="540" width="280" height="160" fill="#e74c3c" stroke="#c0392b" stroke-width="2" rx="5"/>
+    <rect x="850" y="540" width="280" height="35" fill="#c0392b" rx="5"/>
+    
+    <text x="990" y="562" text-anchor="middle" class="table-header">Machine_Status_Data</text>
+    
+    <text x="865" y="585" class="table-field">🔑 id INT - 고유 ID</text>
+    <text x="865" y="605" class="table-field">timestamp DATETIME - 측정시간</text>
+    <text x="865" y="625" class="table-field">🔗 pm_id VARCHAR - 머신 ID (FK)</text>
+    <text x="865" y="645" class="table-field">status INT - 가동상태 (0:정지, 1:운전)</text>
+    <text x="865" y="665" class="table-field">status_duration INT - 지속시간</text>
+    
+    <text x="865" y="685" class="table-note">10초 주기, 25% 확률 정지 변경</text>
   </g>
-
-  <!-- Machine_Status_Data 테이블 -->
-  <g>
-    <rect x="700" y="480" width="220" height="120" fill="#34495e" stroke="#2c3e50" stroke-width="2" rx="8"/>
-    <rect x="700" y="480" width="220" height="30" fill="#2c3e50" rx="8"/>
-    <text x="810" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Machine_Status_Data</text>
-    <text x="710" y="525" font-family="Arial, sans-serif" font-size="10" fill="white">🔑 id (INT, PK, AUTO_INC)</text>
-    <text x="710" y="545" font-family="Arial, sans-serif" font-size="10" fill="white">timestamp (DATETIME)</text>
-    <text x="710" y="565" font-family="Arial, sans-serif" font-size="10" fill="white">🔗 pm_id (VARCHAR, FK)</text>
-    <text x="710" y="585" font-family="Arial, sans-serif" font-size="10" fill="white">status (INT)</text>
-    <text x="710" y="605" font-family="Arial, sans-serif" font-size="9" fill="#bdc3c7">(10초 간격)</text>
-  </g>
-
-  <!-- Operation_Schedule 테이블 -->
-  <g>
-    <rect x="950" y="60" width="200" height="120" fill="#16a085" stroke="#138d75" stroke-width="2" rx="8"/>
-    <rect x="950" y="60" width="200" height="30" fill="#138d75" rx="8"/>
-    <text x="1050" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Operation_Schedule</text>
-    <text x="960" y="105" font-family="Arial, sans-serif" font-size="10" fill="white">구분 (VARCHAR)</text>
-    <text x="960" y="125" font-family="Arial, sans-serif" font-size="10" fill="white">시작시간 (TIME)</text>
-    <text x="960" y="145" font-family="Arial, sans-serif" font-size="10" fill="white">종료시간 (TIME)</text>
-    <text x="960" y="165" font-family="Arial, sans-serif" font-size="10" fill="white">설명 (VARCHAR)</text>
-    <text x="960" y="185" font-family="Arial, sans-serif" font-size="9" fill="#a2d9ce">(고정 테이블)</text>
-  </g>
-
-  <!-- 관계선 및 화살표 -->
-  <!-- Process_Machine_Info → Production_Data -->
-  <line x1="580" y1="220" x2="420" y2="280" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="500" y="245" font-family="Arial, sans-serif" font-size="9" fill="#2c3e50">1:N</text>
-
+  
+  <!-- 관계선들 -->
   <!-- Process_Machine_Info → Power_Data -->
-  <line x1="620" y1="220" x2="780" y2="280" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="700" y="245" font-family="Arial, sans-serif" font-size="9" fill="#2c3e50">1:N</text>
-
-  <!-- Process_Machine_Info → Vibration_Data -->
-  <line x1="580" y1="220" x2="420" y2="480" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="480" y="350" font-family="Arial, sans-serif" font-size="9" fill="#2c3e50">1:N</text>
-
+  <line x1="350" y1="360" x2="850" y2="190" stroke="#34495e" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="580" y="260" class="relation-text">1 : N</text>
+  
+  <!-- Process_Machine_Info → Production_Data -->
+  <line x1="350" y1="410" x2="850" y2="390" stroke="#34495e" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="580" y="400" class="relation-text">1 : N</text>
+  
   <!-- Process_Machine_Info → Machine_Status_Data -->
-  <line x1="620" y1="220" x2="780" y2="480" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="720" y="350" font-family="Arial, sans-serif" font-size="9" fill="#2c3e50">1:N</text>
-
-  <!-- 화살표 정의 -->
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-     refX="10" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#2c3e50" />
-    </marker>
-  </defs>
-
-  <!-- 범례 -->
-  <g>
-    <rect x="50" y="680" width="300" height="100" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1" rx="5"/>
-    <text x="60" y="700" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2c3e50">범례</text>
-    <text x="60" y="720" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">🔑 Primary Key</text>
-    <text x="60" y="735" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">🔗 Foreign Key</text>
-    <text x="60" y="750" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">1:N - 일대다 관계</text>
-    <text x="60" y="765" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">AUTO_INC - Auto Increment</text>
+  <line x1="350" y1="460" x2="850" y2="620" stroke="#34495e" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="580" y="550" class="relation-text">1 : N</text>
+  
+  <!-- Environment_Data 독립 표시 -->
+  <text x="180" y="290" text-anchor="middle" font-family="Arial" font-size="11" fill="#27ae60" font-weight="bold">독립 테이블</text>
+  
+  <!-- 데이터 생성 설명 (좌측 하단) -->
+  <g id="data-generation">
+    <rect x="50" y="740" width="530" height="130" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1" rx="5" filter="url(#shadow)"/>
+    <text x="315" y="760" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#2c3e50">실시간 데이터 생성 패턴</text>
+    
+    <text x="70" y="780" font-family="Arial" font-size="11" fill="#2c3e50">• 환경 데이터: 5초마다 온도(20-30°C), 습도 측정</text>
+    <text x="70" y="795" font-family="Arial" font-size="11" fill="#2c3e50">• 전력 데이터: 5초마다 각 머신별 전력소비량(30-50kWh) 측정</text>
+    <text x="70" y="810" font-family="Arial" font-size="11" fill="#2c3e50">• 머신 상태: 10초마다 운전중인 머신 중 25% 확률로 정지 상태 변경</text>
+    <text x="70" y="825" font-family="Arial" font-size="11" fill="#2c3e50">• 생산 실적: 10초마다 운전중인 머신만 수량 1개씩 생산</text>
+    <text x="70" y="840" font-family="Arial" font-size="11" fill="#2c3e50">• 품질 등급: A등급(90% 확률), NG등급(10% 확률)</text>
+    <text x="70" y="855" font-family="Arial" font-size="11" fill="#2c3e50">• 생산 공정: 주조(3대) → 가공(2대) → 검사(1대) → 조립(1대) → 포장(1대)</text>
   </g>
-
-  <!-- 데이터 수집 주기 정보 -->
-  <g>
-    <rect x="850" y="680" width="300" height="100" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1" rx="5"/>
-    <text x="860" y="700" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2c3e50">데이터 수집 주기</text>
-    <text x="860" y="720" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">• 진동/가동상태: 10초</text>
-    <text x="860" y="735" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">• 전력량: 1분</text>
-    <text x="860" y="750" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">• 환경데이터: 10분</text>
-    <text x="860" y="765" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">• 생산실적: 완료시점</text>
+  
+  <!-- 범례 (우측 하단) -->
+  <g id="legend" filter="url(#shadow)">
+    <rect x="620" y="740" width="530" height="130" fill="white" stroke="#bdc3c7" stroke-width="1" rx="5"/>
+    <text x="885" y="760" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#2c3e50">범례</text>
+    
+    <rect x="640" y="780" width="12" height="10" fill="#3498db" rx="1"/>
+    <text x="658" y="790" font-family="Arial" font-size="10" fill="#2c3e50">마스터 테이블 (머신 정보 관리)</text>
+    
+    <rect x="640" y="800" width="12" height="10" fill="#27ae60" rx="1"/>
+    <text x="658" y="810" font-family="Arial" font-size="10" fill="#2c3e50">환경 데이터 (공장 전체 환경)</text>
+    
+    <rect x="640" y="820" width="12" height="10" fill="#f39c12" rx="1"/>
+    <text x="658" y="830" font-family="Arial" font-size="10" fill="#2c3e50">전력 데이터 (머신별 전력 소비)</text>
+    
+    <rect x="850" y="780" width="12" height="10" fill="#9b59b6" rx="1"/>
+    <text x="868" y="790" font-family="Arial" font-size="10" fill="#2c3e50">생산 데이터 (생산 실적 및 품질)</text>
+    
+    <rect x="850" y="800" width="12" height="10" fill="#e74c3c" rx="1"/>
+    <text x="868" y="810" font-family="Arial" font-size="10" fill="#2c3e50">상태 데이터 (머신 가동 상태)</text>
+    
+    <line x1="850" y1="830" x2="880" y2="830" stroke="#34495e" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="885" y="835" font-family="Arial" font-size="10" fill="#2c3e50">1:N 관계 (하나의 머신이 여러 데이터를 가짐)</text>
+    
+    <text x="885" y="855" text-anchor="middle" font-family="Arial" font-size="10" fill="#7f8c8d" font-style="italic">🔑 Primary Key, 🔗 Foreign Key</text>
   </g>
 </svg>
