@@ -240,6 +240,12 @@ Aircore-Dynamics/
 
 ---
 
+## 📊 AirCore Dynamics Presentation
+
+[👉 전체 PPT 보기](https://dotoriysa.github.io/Aircore-Dynamics/ppt/aircoredynamics_ppt.html)
+
+---
+
 ## 🤝 기여하기 (Contributing)
 
 이 프로젝트에 기여하고 싶으신가요? 먼저 [기여 가이드 (CONTRIBUTING.md)](https://github.com/dotoriysa/Aircore-Dynamics/blob/main/CONTRIBUTING.md) 문서를 꼭 읽어주세요. 여러분의 모든 기여를 환영합니다\!
