@@ -6,7 +6,7 @@
 
 ## 🎬 시연 영상 (Full Demo)
 
-<a href="https://youtu.be/8WMgkRAVswo">
+<a href="https://youtu.be/8WMgkRAVswo" target="_blank">
   <img src="./docs/video/썸네일.png" width="300"/>
 </a>
 
