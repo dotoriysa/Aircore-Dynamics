@@ -114,12 +114,13 @@ Three.js 기반의 **3D 공장 뷰어**와 Figma를 활용한 **UI/UX 설계**�
 ![Aircore Dynamics ERD](./docs/ERD.svg)
 
 본 ERD는 **Aircore Dynamics 대시보드**에서 사용하는 주요 데이터베이스 테이블 구조와 관계를 나타냅니다.  
-- **주요 테이블**: 생산(Production), 설비(Equipment), 공정(Process), 품질(Quality), 재고(Inventory)  
+- **주요 테이블**: 생산(Production), 설비(Equipment), 전력(Power), 장비(Device), 공장 환경(Factory Environment)
 - **핵심 관계**:  
-  - `Equipment` ↔ `Process` (설비는 특정 공정에 속함)  
-  - `Production` ↔ `Equipment` (생산 기록은 설비별로 생성)  
-  - `Quality` ↔ `Production` (품질 검사는 생산 결과와 연동)  
-  - `Inventory` ↔ `Production` (재고는 생산량 및 출하와 연결)  
+  - `생산(Production)` ↔ `설비(Equipment)` (생산 기록은 특정 설비에서 발생)  
+  - `생산(Production)` ↔ `장비(Device)` (생산 기록은 특정 장비를 사용)  
+  - `설비(Equipment)` ↔ `전력(Power)` (설비의 전력 사용량을 기록)  
+  - `장비(Device)` ↔ `전력(Power)` (장비의 전력 사용량을 기록)
+  - `생산(Production)` ↔ `공장 환경(Factory Environment)` (생산은 특정 공장 환경 하에서 진행)
 
 ---
 
